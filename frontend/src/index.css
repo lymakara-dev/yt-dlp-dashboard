@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Brand palette (shared with /docs/assets logo + banner):
+    Violet  #7C5CFF   primary / brand
+    Cyan    #22D3EE   accent
+    Ink     #0B0E14   dark background
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 32% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 32% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 32% 12%;
+
+    --primary: 252 100% 68%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 32% 18%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 187 85% 53%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 252 100% 68%;
+
+    --radius: 0.7rem;
+  }
+
+  .dark {
+    --background: 222 32% 6%;
+    --foreground: 210 20% 96%;
+
+    --card: 222 28% 9%;
+    --card-foreground: 210 20% 96%;
+
+    --popover: 222 28% 9%;
+    --popover-foreground: 210 20% 96%;
+
+    --primary: 252 100% 72%;
+    --primary-foreground: 222 47% 8%;
+
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 20% 96%;
+
+    --muted: 222 20% 15%;
+    --muted-foreground: 215 16% 60%;
+
+    --accent: 187 85% 53%;
+    --accent-foreground: 222 47% 8%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 18% 18%;
+    --input: 222 18% 20%;
+    --ring: 252 100% 72%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}

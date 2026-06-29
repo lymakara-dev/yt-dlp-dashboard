@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+backend/.venv/
+backend/data/
+*.db
+.env
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Docker bind-mount targets (created on first run)
+/downloads/
+/data/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

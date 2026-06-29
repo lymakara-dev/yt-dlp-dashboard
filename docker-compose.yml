@@ -1,0 +1,18 @@
+services:
+  yt-dlp-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yt-dlp-dashboard:latest
+    container_name: yt-dlp-dashboard
+    ports:
+      - "8000:8000"
+    volumes:
+      # Where your downloaded files land on the host.
+      - ./downloads:/downloads
+      # Persisted SQLite database (job history + settings) survives restarts.
+      - ./data:/data
+    environment:
+      YTDLP_DOWNLOAD_DIR: /downloads
+      YTDLP_DATABASE_URL: sqlite:////data/app.db
+    restart: unless-stopped
