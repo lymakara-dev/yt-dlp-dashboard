@@ -1,13 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Ban, Gauge, Timer } from "lucide-react";
+import { Ban, CalendarClock, Gauge, Timer } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SpeedGraph } from "@/components/SpeedGraph";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useJobSocket } from "@/hooks/useJobSocket";
 import { ApiError, api } from "@/lib/api";
-import { formatBytes, formatEta, formatSpeed } from "@/lib/format";
+import { formatBytes, formatDate, formatEta, formatSpeed } from "@/lib/format";
 import type { Job, JobStatus } from "@/lib/types";
 
 const ACTIVE: JobStatus[] = ["queued", "downloading", "post-processing"];
@@ -26,6 +28,14 @@ export function DownloadCard({ job }: { job: Job }) {
   const downloaded = live?.downloaded_bytes ?? job.downloaded_bytes;
   const total = live?.total_bytes ?? job.total_bytes;
   const title = job.title ?? live?.title ?? job.url;
+
+  // Rolling speed history for the live sparkline.
+  const [speeds, setSpeeds] = useState<number[]>([]);
+  useEffect(() => {
+    if (status === "downloading" && typeof speed === "number" && speed > 0) {
+      setSpeeds((h) => [...h.slice(-39), speed]);
+    }
+  }, [speed, status]);
 
   const cancel = useMutation({
     mutationFn: () => api.cancelDownload(job.id),
@@ -49,6 +59,16 @@ export function DownloadCard({ job }: { job: Job }) {
         </div>
 
         <Progress value={indeterminate ? 100 : progress} indeterminate={indeterminate} />
+
+        {status === "downloading" && speeds.length > 1 && (
+          <SpeedGraph data={speeds} />
+        )}
+
+        {status === "scheduled" && job.scheduled_at && (
+          <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <CalendarClock className="h-3.5 w-3.5" /> Scheduled for {formatDate(job.scheduled_at)}
+          </p>
+        )}
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-4">

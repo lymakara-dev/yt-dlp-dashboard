@@ -102,7 +102,7 @@
 - Username/password login, per-video password, 2FA code, and `~/.netrc`/OAuth-style credentials — for age-restricted and members-only content. Secrets are stored server-side and masked in API responses. Configure via **Advanced options → Authentication**.
 
 **Real-time progress**
-- Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
+- Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar and a live **speed sparkline** on each active download. Scheduled downloads show their queued time.
 
 **History &amp; files**
 - Sortable history table with status badges, format, file size and date.
