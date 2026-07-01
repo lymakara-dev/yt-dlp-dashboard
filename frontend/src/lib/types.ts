@@ -64,6 +64,13 @@ export interface DownloadOptions {
   embed_chapters?: boolean;
   write_comments?: boolean;
   preserve_mtime?: boolean;
+
+  // Audio extraction
+  audio_format?: string | null;
+  audio_quality?: string | null;
+  keep_audio_codec?: boolean;
+  normalize_audio?: boolean;
+  ffmpeg_args?: string | null;
 }
 
 export interface DownloadRequest {

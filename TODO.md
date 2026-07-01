@@ -19,8 +19,8 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Metadata: info JSON, embed metadata, embed chapters, preserve upload date/uploader/description, comments
 
 ## Phase 2 — Audio
-- [ ] Extract audio only (mp3, aac, opus, flac, wav, vorbis, m4a)
-- [ ] Audio quality, keep original codec, normalize audio, custom ffmpeg options
+- [x] Extract audio only (mp3, aac, opus, flac, wav, vorbis, m4a)
+- [x] Audio quality, keep original codec, normalize audio, custom ffmpeg options
 
 ## Phase 3 — Advanced format selection
 - [ ] Full yt-dlp selector support (best/bv+ba/worst/filters/height/fps/codec/HDR/bitrate/ext)

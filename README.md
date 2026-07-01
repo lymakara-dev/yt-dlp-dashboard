@@ -66,6 +66,9 @@
 - **Thumbnails (advanced):** save the thumbnail as a separate file, save every available thumbnail, embed the cover into the media file, and convert to `jpg`/`png`/`webp`.
 - **Metadata (advanced):** embed metadata (title, uploader, date, description) and chapter markers into the file, write the full `.info.json` sidecar, fetch comments, and preserve the upload date as the file's modified time.
 
+**Audio extraction**
+- Extract audio-only downloads to `mp3`, `aac`, `opus`, `flac`, `wav`, `vorbis` or `m4a`, set the quality (VBR `0`–`10` or a kbps value), keep the original codec (copy), normalize loudness (ffmpeg `loudnorm`), and pass custom ffmpeg arguments. Configure via **Advanced options → Audio**.
+
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
 

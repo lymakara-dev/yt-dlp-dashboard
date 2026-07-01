@@ -46,6 +46,13 @@ class DownloadOptions(BaseModel):
     write_all_thumbnails: bool = False  # save every available thumbnail
     convert_thumbnail: str | None = None  # convert to jpg | png | webp
 
+    # ---- audio extraction ----
+    audio_format: str | None = None  # mp3|aac|opus|flac|wav|vorbis|m4a (with audio_only)
+    audio_quality: str | None = None  # 0 (best) .. 10, or a kbps value like "192"
+    keep_audio_codec: bool = False  # copy the source codec instead of converting
+    normalize_audio: bool = False  # apply ffmpeg loudnorm during extraction
+    ffmpeg_args: str | None = None  # raw args appended to ffmpeg postprocessors
+
     # ---- metadata ----
     write_info_json: bool = False  # write the full .info.json sidecar
     embed_metadata: bool = False  # embed title/uploader/date/description in-container

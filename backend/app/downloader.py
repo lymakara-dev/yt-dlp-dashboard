@@ -1,6 +1,7 @@
 """Thin wrappers around yt-dlp's YoutubeDL used as a library (no shelling out)."""
 from __future__ import annotations
 
+import shlex
 import shutil
 from typing import Any, Callable
 
@@ -178,8 +179,13 @@ def build_ydl_opts(
     # ---- format selection ----
     fmt = _select_format(o)
     if o.audio_only:
+        codec = "best" if o.keep_audio_codec else (o.audio_format or "mp3")
         postprocessors.append(
-            {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": codec,
+                "preferredquality": o.audio_quality or "192",
+            }
         )
 
     opts: dict[str, Any] = {
@@ -247,6 +253,16 @@ def build_ydl_opts(
         postprocessors.append(
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]}
         )
+
+    # ---- ffmpeg / normalization postprocessor args ----
+    ppa: dict[str, list[str]] = {}
+    if o.ffmpeg_args:
+        ppa["default"] = shlex.split(o.ffmpeg_args)
+    if o.normalize_audio and o.audio_only:
+        # loudnorm forces a re-encode, so it only applies to audio extraction.
+        ppa.setdefault("extractaudio", []).extend(["-af", "loudnorm"])
+    if ppa:
+        opts["postprocessor_args"] = ppa
 
     if postprocessors:
         opts["postprocessors"] = postprocessors

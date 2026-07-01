@@ -119,6 +119,58 @@ export function OptionsPanel({
         </p>
       </Section>
 
+      <Section title="Audio" summary={audioSummary(value)}>
+        <p className="text-xs text-muted-foreground">
+          Applies when downloading audio only (choose the “Audio” preset or an audio-only format).
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Format" hint="Codec to extract to">
+            <Select
+              value={value.audio_format ?? "mp3"}
+              onValueChange={(v) => set("audio_format", v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {["mp3", "aac", "opus", "flac", "wav", "vorbis", "m4a"].map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {f}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Quality" hint="0 = best VBR, or kbps like 192/320">
+            <Input
+              value={value.audio_quality ?? ""}
+              onChange={(e) => set("audio_quality", e.target.value || null)}
+              placeholder="192"
+            />
+          </Field>
+        </div>
+        <OptToggle
+          label="Keep original codec"
+          hint="Copy the source audio instead of converting"
+          checked={!!value.keep_audio_codec}
+          onChange={(v) => set("keep_audio_codec", v)}
+        />
+        <OptToggle
+          label="Normalize loudness"
+          hint="Apply ffmpeg loudnorm (re-encodes audio)"
+          checked={!!value.normalize_audio}
+          onChange={(v) => set("normalize_audio", v)}
+        />
+        <Field label="Custom ffmpeg args" hint="Appended to ffmpeg post-processors">
+          <Input
+            value={value.ffmpeg_args ?? ""}
+            onChange={(e) => set("ffmpeg_args", e.target.value || null)}
+            placeholder="-threads 4"
+            className="font-mono text-sm"
+          />
+        </Field>
+      </Section>
+
       <Section title="Metadata" summary={metadataSummary(value)}>
         <OptToggle
           label="Embed metadata"
@@ -153,6 +205,15 @@ export function OptionsPanel({
       </Section>
     </div>
   );
+}
+
+function audioSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.keep_audio_codec) parts.push("copy");
+  else if (o.audio_format) parts.push(o.audio_format);
+  if (o.audio_quality) parts.push(`q${o.audio_quality}`);
+  if (o.normalize_audio) parts.push("loudnorm");
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function metadataSummary(o: DownloadOptions): string | null {

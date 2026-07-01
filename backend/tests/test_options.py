@@ -139,6 +139,33 @@ def test_preserve_mtime_default_and_off():
     assert _build(DownloadOptions(preserve_mtime=False))["updatetime"] is False
 
 
+def test_audio_format_and_quality():
+    opts = _build(DownloadOptions(audio_only=True, audio_format="flac", audio_quality="0"))
+    pp = [p for p in opts["postprocessors"] if p["key"] == "FFmpegExtractAudio"][0]
+    assert pp["preferredcodec"] == "flac"
+    assert pp["preferredquality"] == "0"
+
+
+def test_keep_audio_codec_uses_best():
+    opts = _build(DownloadOptions(audio_only=True, audio_format="mp3", keep_audio_codec=True))
+    pp = [p for p in opts["postprocessors"] if p["key"] == "FFmpegExtractAudio"][0]
+    assert pp["preferredcodec"] == "best"
+
+
+def test_normalize_audio_only_on_extraction():
+    on = _build(DownloadOptions(audio_only=True, normalize_audio=True))
+    assert on["postprocessor_args"]["extractaudio"] == ["-af", "loudnorm"]
+    off = _build(DownloadOptions(normalize_audio=True))  # no audio_only -> no-op
+    assert "postprocessor_args" not in off
+
+
+def test_custom_ffmpeg_args_parsed():
+    opts = _build(DownloadOptions(ffmpeg_args="-threads 4 -movflags +faststart"))
+    assert opts["postprocessor_args"]["default"] == [
+        "-threads", "4", "-movflags", "+faststart",
+    ]
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",
