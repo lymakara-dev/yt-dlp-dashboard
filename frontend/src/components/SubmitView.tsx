@@ -30,6 +30,7 @@ export function SubmitView() {
     sponsorblock: false,
   });
   const [options, setOptions] = useState<DownloadOptions>({});
+  const [scheduleAt, setScheduleAt] = useState("");
 
   const probe = useMutation({
     mutationFn: (u: string) => api.probe(u),
@@ -58,6 +59,7 @@ export function SubmitView() {
       setInfo(null);
       setUrl("");
       setOptions({});
+      setScheduleAt("");
     },
     onError: (e: ApiError) => toast.error("Could not start download", { description: e.message }),
   });
@@ -75,6 +77,8 @@ export function SubmitView() {
       embed_thumbnail: toggles.embed_thumbnail,
       sponsorblock: toggles.sponsorblock,
       options,
+      // datetime-local is local time; send an absolute UTC instant.
+      scheduled_at: scheduleAt ? new Date(scheduleAt).toISOString() : null,
     };
     if (selection.mode === "preset") {
       req.quality_preset = selection.preset;
@@ -207,6 +211,17 @@ export function SubmitView() {
               />
             </div>
 
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <div className="flex-1 space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Schedule for later (optional)</Label>
+                <Input
+                  type="datetime-local"
+                  value={scheduleAt}
+                  onChange={(e) => setScheduleAt(e.target.value)}
+                />
+              </div>
+            </div>
+
             <Button
               onClick={onDownload}
               size="lg"
@@ -218,7 +233,7 @@ export function SubmitView() {
               ) : (
                 <Download className="h-4 w-4" />
               )}
-              Download
+              {scheduleAt ? "Schedule download" : "Download"}
             </Button>
           </div>
         )}

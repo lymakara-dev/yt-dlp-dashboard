@@ -2,6 +2,7 @@
 // Keep field names in sync with the API contract.
 
 export type JobStatus =
+  | "scheduled"
   | "queued"
   | "downloading"
   | "post-processing"
@@ -151,6 +152,7 @@ export interface DownloadRequest {
   embed_thumbnail?: boolean;
   sponsorblock?: boolean;
   output_template?: string | null;
+  scheduled_at?: string | null;
   options?: DownloadOptions;
 }
 
@@ -185,6 +187,7 @@ export interface Job {
   created_at: string;
   updated_at: string;
   finished_at: string | null;
+  scheduled_at: string | null;
 }
 
 export interface SearchResultItem {

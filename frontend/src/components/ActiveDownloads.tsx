@@ -4,7 +4,7 @@ import { DownloadCard } from "@/components/DownloadCard";
 import { api } from "@/lib/api";
 import type { JobStatus } from "@/lib/types";
 
-const ACTIVE: JobStatus[] = ["queued", "downloading", "post-processing"];
+const ACTIVE: JobStatus[] = ["scheduled", "queued", "downloading", "post-processing"];
 
 export function ActiveDownloads() {
   const { data } = useQuery({

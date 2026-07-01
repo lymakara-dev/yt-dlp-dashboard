@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import asyncio
 import os
+from datetime import timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, func, select
 
 from ..db import get_session, get_settings
 from ..downloader import ProbeError, probe
-from ..models import TERMINAL_STATES, Job, JobStatus
+from ..models import TERMINAL_STATES, Job, JobStatus, utcnow
 from ..options import redact
 from ..queue import manager
 from ..schemas import (
@@ -39,9 +40,14 @@ async def create_download(req: DownloadRequest, session: Session = Depends(get_s
         raise HTTPException(status_code=422, detail="URL is required.")
 
     settings = get_settings(session)
+    # A future scheduled_at holds the job until the automation loop makes it due.
+    sched = req.scheduled_at
+    if sched is not None and sched.tzinfo is None:
+        sched = sched.replace(tzinfo=timezone.utc)  # treat naive input as UTC
+    is_scheduled = sched is not None and sched > utcnow()
     job = Job(
         url=url,
-        status=JobStatus.queued,
+        status=JobStatus.scheduled if is_scheduled else JobStatus.queued,
         format_id=req.format_id,
         quality_preset=req.quality_preset,
         audio_only=req.audio_only,
@@ -50,6 +56,7 @@ async def create_download(req: DownloadRequest, session: Session = Depends(get_s
         sponsorblock=req.sponsorblock,
         output_template=req.output_template or settings.default_output_template,
         options=req.options.model_dump(exclude_none=True) if req.options else {},
+        scheduled_at=sched if is_scheduled else None,
     )
 
     # Best-effort metadata so the UI/history has a title immediately.
@@ -67,7 +74,8 @@ async def create_download(req: DownloadRequest, session: Session = Depends(get_s
     session.commit()
     session.refresh(job)
 
-    await manager.enqueue(job.id)
+    if not is_scheduled:
+        await manager.enqueue(job.id)
     return CreatedJob(id=job.id)
 
 

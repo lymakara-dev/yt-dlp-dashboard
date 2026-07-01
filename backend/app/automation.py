@@ -14,10 +14,30 @@ import os
 from datetime import datetime, timezone
 
 from .db import get_settings, session_scope
-from .models import Job, JobStatus
+from .models import Job, JobStatus, utcnow
 from .queue import manager
 
 log = logging.getLogger("ytdlp-dashboard.automation")
+
+
+async def _enqueue_due_scheduled() -> None:
+    """Promote scheduled jobs whose time has come to the download queue."""
+    now = utcnow()
+    due: list[int] = []
+    with session_scope() as session:
+        jobs = session.query(Job).filter(Job.status == JobStatus.scheduled).all()
+        for job in jobs:
+            sched = job.scheduled_at
+            if sched is not None and sched.tzinfo is None:
+                sched = sched.replace(tzinfo=timezone.utc)
+            if sched is None or sched <= now:
+                job.status = JobStatus.queued
+                job.updated_at = now
+                due.append(job.id)
+    for jid in due:
+        await manager.enqueue(jid)
+    if due:
+        log.info("Promoted %d scheduled job(s) to the queue", len(due))
 
 
 def _read_urls(path: str) -> list[str]:
@@ -91,6 +111,7 @@ class Watcher:
                     folder = settings.watch_folder
                     interval = settings.watch_interval or 30
                     template = settings.default_output_template
+                await _enqueue_due_scheduled()
                 await _scan_once(folder, template)
             except asyncio.CancelledError:
                 raise

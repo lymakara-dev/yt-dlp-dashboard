@@ -71,6 +71,7 @@ class DownloadRequest(BaseModel):
     embed_thumbnail: bool = False
     sponsorblock: bool = False
     output_template: str | None = None
+    scheduled_at: datetime | None = None  # queue later instead of immediately
     # Full set of newer knobs. Legacy top-level fields above stay for back-compat.
     options: DownloadOptions | None = None
 
@@ -106,6 +107,7 @@ class JobRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     finished_at: datetime | None = None
+    scheduled_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

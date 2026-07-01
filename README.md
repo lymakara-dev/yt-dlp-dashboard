@@ -66,6 +66,7 @@
 - **Batch import:** paste a list of URLs (one per line, `#` comments ignored) or import a `.txt` file and queue them all with `POST /api/downloads/batch` — duplicates within a batch are skipped.
 - **Watch folder:** point Settings at a directory; the backend polls it on an interval and auto-queues URLs from any `*.txt` file dropped in (each file is renamed `*.imported` once processed).
 - **Download archive:** enable per download (Advanced options → File organization) to skip anything already downloaded.
+- **Scheduled downloads:** set a future date/time on the download screen; the job is held as `scheduled` and the automation loop queues it when due.
 
 **Search**
 - A dedicated **Search** page queries YouTube (relevance or newest) or SoundCloud (`ytsearch`/`ytsearchdate`/`scsearch`), returns thumbnailed results, and queues any result with one click. Backed by `POST /api/search`.

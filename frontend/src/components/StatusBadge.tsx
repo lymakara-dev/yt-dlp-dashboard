@@ -1,4 +1,5 @@
 import {
+  CalendarClock,
   CheckCircle2,
   CircleSlash,
   Clock,
@@ -13,6 +14,7 @@ const MAP: Record<
   JobStatus,
   { label: string; variant: "default" | "secondary" | "success" | "warning" | "destructive"; spin?: boolean; icon: typeof Clock }
 > = {
+  scheduled: { label: "Scheduled", variant: "secondary", icon: CalendarClock },
   queued: { label: "Queued", variant: "secondary", icon: Clock },
   downloading: { label: "Downloading", variant: "default", icon: Download },
   "post-processing": { label: "Processing", variant: "warning", spin: true, icon: Loader2 },

@@ -13,6 +13,7 @@ def utcnow() -> datetime:
 
 
 class JobStatus(str, enum.Enum):
+    scheduled = "scheduled"
     queued = "queued"
     downloading = "downloading"
     post_processing = "post-processing"
@@ -66,6 +67,7 @@ class Job(SQLModel, table=True):
     created_at: datetime = Field(default_factory=utcnow, index=True)
     updated_at: datetime = Field(default_factory=utcnow)
     finished_at: datetime | None = None
+    scheduled_at: datetime | None = None  # when a scheduled job becomes due
 
 
 class AppSettings(SQLModel, table=True):

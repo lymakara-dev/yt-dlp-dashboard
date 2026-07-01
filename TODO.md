@@ -54,7 +54,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Merge, remux, convert, split chapters, SponsorBlock (mark/remove), trim, crop, re-encode, ffmpeg opts
 
 ## Phase 13 — Automation
-- [ ] Batch URL import, text file import, watch folder, download archive, scheduled downloads
+- [x] Batch URL import, text file import, watch folder, download archive, scheduled downloads
 
 ## Phase 14 — Developer features
 - [x] JSON output, raw info extraction, export metadata, progress hooks, external downloaders (aria2), custom postprocessors
