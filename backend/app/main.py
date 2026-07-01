@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from .automation import watcher
 from .config import config
 from .db import init_db
 from .downloader import ffmpeg_info
@@ -36,9 +37,11 @@ async def lifespan(app: FastAPI):
     app.state.ffmpeg_version = version
 
     await manager.start()
+    await watcher.start()
 
     yield
 
+    await watcher.stop()
     await manager.shutdown()
 
 

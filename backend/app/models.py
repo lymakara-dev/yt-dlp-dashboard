@@ -77,3 +77,7 @@ class AppSettings(SQLModel, table=True):
     max_concurrency: int = 2
     default_output_template: str = "%(title)s [%(id)s].%(ext)s"
     naming: str = "%(title)s [%(id)s].%(ext)s"  # alias kept for clarity in UI
+
+    # Automation: watch a folder for *.txt URL lists and auto-queue them.
+    watch_folder: str = ""  # empty = disabled
+    watch_interval: int = 30  # seconds between scans

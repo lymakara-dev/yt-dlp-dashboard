@@ -16,6 +16,8 @@ from .models import AppSettings
 # full migration framework for our append-only schema evolution.
 _MIGRATIONS: list[tuple[str, str, str]] = [
     ("job", "options", "JSON NOT NULL DEFAULT '{}'"),
+    ("appsettings", "watch_folder", "TEXT NOT NULL DEFAULT ''"),
+    ("appsettings", "watch_interval", "INTEGER NOT NULL DEFAULT 30"),
 ]
 
 

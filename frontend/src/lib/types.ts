@@ -213,6 +213,8 @@ export interface Settings {
   max_concurrency: number;
   default_output_template: string;
   naming: string;
+  watch_folder: string;
+  watch_interval: number;
 }
 
 export interface HealthResponse {

@@ -144,6 +144,29 @@ export function SettingsPage() {
             />
           </Field>
 
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label="Watch folder"
+              hint="Auto-queue URLs from *.txt files dropped here. Blank = disabled."
+            >
+              <Input
+                value={form.watch_folder}
+                onChange={(e) => update("watch_folder", e.target.value)}
+                placeholder="/watch"
+                className="font-mono text-sm"
+              />
+            </Field>
+            <Field label="Watch interval (s)" hint="How often to scan (5–3600).">
+              <Input
+                type="number"
+                min={5}
+                max={3600}
+                value={form.watch_interval}
+                onChange={(e) => update("watch_interval", Number(e.target.value))}
+              />
+            </Field>
+          </div>
+
           <div className="flex justify-end">
             <Button onClick={() => save.mutate(form)} disabled={save.isPending}>
               {save.isPending ? (

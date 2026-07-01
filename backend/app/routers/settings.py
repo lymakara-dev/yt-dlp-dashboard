@@ -46,6 +46,24 @@ def update_settings(
     if update.naming is not None:
         settings.naming = update.naming
 
+    if update.watch_folder is not None:
+        folder = update.watch_folder.strip()
+        if folder:
+            path = Path(folder).expanduser()
+            try:
+                path.mkdir(parents=True, exist_ok=True)
+            except OSError as exc:
+                raise HTTPException(
+                    status_code=400, detail=f"Cannot use watch folder: {exc}"
+                ) from exc
+            settings.watch_folder = str(path)
+        else:
+            settings.watch_folder = ""
+    if update.watch_interval is not None:
+        if update.watch_interval < 5 or update.watch_interval > 3600:
+            raise HTTPException(status_code=400, detail="watch_interval must be 5–3600 seconds.")
+        settings.watch_interval = update.watch_interval
+
     session.add(settings)
     session.commit()
     session.refresh(settings)

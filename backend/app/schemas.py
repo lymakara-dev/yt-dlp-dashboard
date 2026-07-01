@@ -128,6 +128,8 @@ class SettingsRead(BaseModel):
     max_concurrency: int
     default_output_template: str
     naming: str
+    watch_folder: str
+    watch_interval: int
 
     model_config = {"from_attributes": True}
 
@@ -138,6 +140,8 @@ class SettingsUpdate(BaseModel):
     max_concurrency: int | None = None
     default_output_template: str | None = None
     naming: str | None = None
+    watch_folder: str | None = None
+    watch_interval: int | None = None
 
 
 # ---------- Misc ----------
