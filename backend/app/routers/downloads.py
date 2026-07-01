@@ -12,7 +12,15 @@ from ..downloader import ProbeError, probe
 from ..models import TERMINAL_STATES, Job, JobStatus
 from ..options import redact
 from ..queue import manager
-from ..schemas import CreatedJob, DeleteJobRequest, DownloadRequest, JobList, JobRead
+from ..schemas import (
+    BatchRequest,
+    CreatedBatch,
+    CreatedJob,
+    DeleteJobRequest,
+    DownloadRequest,
+    JobList,
+    JobRead,
+)
 
 router = APIRouter(prefix="/api/downloads", tags=["downloads"])
 
@@ -61,6 +69,43 @@ async def create_download(req: DownloadRequest, session: Session = Depends(get_s
 
     await manager.enqueue(job.id)
     return CreatedJob(id=job.id)
+
+
+@router.post("/batch", response_model=CreatedBatch, status_code=201)
+async def create_batch(req: BatchRequest, session: Session = Depends(get_session)) -> CreatedBatch:
+    """Queue many URLs at once (shared options). Metadata is filled on completion."""
+    settings = get_settings(session)
+    options = req.options.model_dump(exclude_none=True) if req.options else {}
+    audio_only = bool(req.options and req.options.audio_only)
+
+    seen: set[str] = set()
+    jobs: list[Job] = []
+    for raw in req.urls:
+        url = raw.strip()
+        if not url or url.startswith("#") or url in seen:
+            continue  # skip blanks, comments, and dupes within the batch
+        seen.add(url)
+        jobs.append(
+            Job(
+                url=url,
+                status=JobStatus.queued,
+                audio_only=audio_only,
+                output_template=settings.default_output_template,
+                options=options,
+            )
+        )
+    if not jobs:
+        raise HTTPException(status_code=422, detail="No valid URLs in the batch.")
+
+    session.add_all(jobs)
+    session.commit()
+    ids = []
+    for job in jobs:
+        session.refresh(job)
+        ids.append(job.id)
+    for jid in ids:
+        await manager.enqueue(jid)
+    return CreatedBatch(ids=ids, count=len(ids))
 
 
 @router.get("", response_model=JobList)

@@ -71,6 +71,12 @@ export const api = {
       body: JSON.stringify(req),
     }),
 
+  createBatch: (urls: string[], options?: DownloadRequest["options"]) =>
+    request<{ ids: number[]; count: number }>("/api/downloads/batch", {
+      method: "POST",
+      body: JSON.stringify({ urls, options }),
+    }),
+
   listDownloads: (page = 1, pageSize = 50) =>
     request<JobList>(`/api/downloads?page=${page}&page_size=${pageSize}`),
 

@@ -145,6 +145,16 @@ class CreatedJob(BaseModel):
     id: int
 
 
+class BatchRequest(BaseModel):
+    urls: list[str]
+    options: DownloadOptions | None = None
+
+
+class CreatedBatch(BaseModel):
+    ids: list[int]
+    count: int
+
+
 class HealthResponse(BaseModel):
     status: str
     ffmpeg: bool

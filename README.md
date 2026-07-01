@@ -62,6 +62,9 @@
 - Playlist URLs are detected and reported (item count) so you know what you're pointing at.
 - **Playlist downloads:** grab the whole playlist, a range/selection (`1-10,15,20:30`), reverse or random order, skip unavailable entries, stream lazily, and ignore duplicates via a download archive. Configure via **Advanced options → Playlist**. (A playlist runs as a single job producing multiple files on disk.)
 
+**Automation**
+- **Batch import:** paste a list of URLs (one per line, `#` comments ignored) or import a `.txt` file and queue them all with `POST /api/downloads/batch` — duplicates within a batch are skipped.
+
 **Search**
 - A dedicated **Search** page queries YouTube (relevance or newest) or SoundCloud (`ytsearch`/`ytsearchdate`/`scsearch`), returns thumbnailed results, and queues any result with one click. Backed by `POST /api/search`.
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActiveDownloads } from "@/components/ActiveDownloads";
+import { BatchImport } from "@/components/BatchImport";
 import { Header, type View } from "@/components/Header";
 import { HistoryTable } from "@/components/HistoryTable";
 import { SearchPage } from "@/components/SearchPage";
@@ -16,6 +17,7 @@ export default function App() {
         {view === "home" && (
           <div className="space-y-8">
             <SubmitView />
+            <BatchImport />
             <ActiveDownloads />
           </div>
         )}

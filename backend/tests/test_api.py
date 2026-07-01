@@ -11,6 +11,7 @@ def test_expected_routes_registered():
         "/api/probe/raw",
         "/api/search",
         "/api/downloads",
+        "/api/downloads/batch",
         "/api/settings",
         "/api/health",
     ):
