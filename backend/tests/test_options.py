@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 
 from app.downloader import build_ydl_opts, parse_bytes, parse_download_sections
-from app.options import DownloadOptions, merge_legacy
+from app.options import DownloadOptions, merge_legacy, redact
 
 
 def _build(o: DownloadOptions) -> dict:
@@ -299,6 +299,33 @@ def test_cookies_from_browser_and_file():
     )
     assert opts["cookiesfrombrowser"] == ("firefox", None, None, None)
     assert opts["cookiefile"] == "/tmp/cookies.txt"
+
+
+def test_auth_translation():
+    opts = _build(
+        DownloadOptions(
+            username="u",
+            password="p",
+            video_password="vp",
+            twofactor="123456",
+            netrc=True,
+        )
+    )
+    assert opts["username"] == "u"
+    assert opts["password"] == "p"
+    assert opts["videopassword"] == "vp"
+    assert opts["twofactor"] == "123456"
+    assert opts["usenetrc"] is True
+
+
+def test_redact_masks_secrets_only():
+    red = redact({"username": "u", "password": "p", "twofactor": "1", "video_password": "x"})
+    assert red["username"] == "u"  # not secret
+    assert red["password"] == "********"
+    assert red["twofactor"] == "********"
+    assert red["video_password"] == "********"
+    # absent/empty secrets are left untouched
+    assert "password" not in redact({"username": "u"})
 
 
 def test_merge_legacy_blob_wins_over_columns():

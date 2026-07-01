@@ -36,7 +36,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Import cookies from Chrome/Chromium/Edge/Firefox/Brave/Opera/Vivaldi/Safari + UI selector
 
 ## Phase 7 — Authentication
-- [ ] Username/password, cookies, OAuth (netrc), age-restricted, membership content
+- [x] Username/password, cookies, OAuth (netrc), age-restricted, membership content
 
 ## Phase 8 — Download control
 - [x] Speed limit, retries, retry delay, resume, concurrent fragments, sections/timestamps, max/min filesize

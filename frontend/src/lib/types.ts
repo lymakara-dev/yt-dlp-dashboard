@@ -96,6 +96,13 @@ export interface DownloadOptions {
   cookies_from_browser?: string | null;
   cookies_file?: string | null;
 
+  // Authentication
+  username?: string | null;
+  password?: string | null;
+  video_password?: string | null;
+  twofactor?: string | null;
+  netrc?: boolean;
+
   // Network
   proxy?: string | null;
   source_address?: string | null;

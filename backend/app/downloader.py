@@ -349,6 +349,18 @@ def build_ydl_opts(
     if o.cookies_file:
         opts["cookiefile"] = o.cookies_file
 
+    # ---- authentication ----
+    if o.username:
+        opts["username"] = o.username
+    if o.password:
+        opts["password"] = o.password
+    if o.video_password:
+        opts["videopassword"] = o.video_password
+    if o.twofactor:
+        opts["twofactor"] = o.twofactor
+    if o.netrc:
+        opts["usenetrc"] = True
+
     # ---- network ----
     if o.proxy:
         opts["proxy"] = o.proxy

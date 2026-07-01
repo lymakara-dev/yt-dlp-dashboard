@@ -369,6 +369,58 @@ export function OptionsPanel({
         </Field>
       </Section>
 
+      <Section
+        title="Authentication"
+        summary={value.username || value.netrc ? "set" : null}
+      >
+        <p className="text-xs text-muted-foreground">
+          For age-restricted or members-only content, log in or import cookies. Credentials are
+          stored on the server and never shown again after saving.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Username">
+            <Input
+              value={value.username ?? ""}
+              onChange={(e) => set("username", e.target.value || null)}
+              placeholder="none"
+              autoComplete="off"
+            />
+          </Field>
+          <Field label="Password">
+            <Input
+              type="password"
+              value={value.password ?? ""}
+              onChange={(e) => set("password", e.target.value || null)}
+              placeholder="none"
+              autoComplete="new-password"
+            />
+          </Field>
+          <Field label="Video password" hint="For a single protected video">
+            <Input
+              type="password"
+              value={value.video_password ?? ""}
+              onChange={(e) => set("video_password", e.target.value || null)}
+              placeholder="none"
+              autoComplete="new-password"
+            />
+          </Field>
+          <Field label="2FA code" hint="One-time code, if required">
+            <Input
+              value={value.twofactor ?? ""}
+              onChange={(e) => set("twofactor", e.target.value || null)}
+              placeholder="none"
+              autoComplete="off"
+            />
+          </Field>
+        </div>
+        <OptToggle
+          label="Use ~/.netrc"
+          hint="Read credentials from the server's .netrc (OAuth-style logins)"
+          checked={!!value.netrc}
+          onChange={(v) => set("netrc", v)}
+        />
+      </Section>
+
       <Section title="Network" summary={networkSummary(value)}>
         <Field label="Proxy" hint="http://host:port or socks5://host:port">
           <Input

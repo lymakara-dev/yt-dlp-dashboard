@@ -80,6 +80,9 @@
 **Cookies**
 - Import cookies straight from a local browser profile (Chrome, Chromium, Edge, Firefox, Brave, Opera, Vivaldi, Safari) or point at a Netscape `cookies.txt` file. Configure via **Advanced options → Cookies**.
 
+**Authentication**
+- Username/password login, per-video password, 2FA code, and `~/.netrc`/OAuth-style credentials — for age-restricted and members-only content. Secrets are stored server-side and masked in API responses. Configure via **Advanced options → Authentication**.
+
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
 

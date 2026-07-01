@@ -75,6 +75,13 @@ class DownloadOptions(BaseModel):
     cookies_from_browser: str | None = None  # chrome|chromium|edge|firefox|brave|opera|vivaldi|safari
     cookies_file: str | None = None  # path to a Netscape cookies.txt
 
+    # ---- authentication ----
+    username: str | None = None  # login (use "oauth2" for extractors that support it)
+    password: str | None = None
+    video_password: str | None = None  # password for a specific protected video
+    twofactor: str | None = None  # 2FA / OTP code
+    netrc: bool = False  # read credentials from ~/.netrc
+
     # ---- network ----
     proxy: str | None = None  # http://host:port or socks5://host:port
     source_address: str | None = None  # bind to a local interface/IP
@@ -95,6 +102,19 @@ class DownloadOptions(BaseModel):
     ignore_duplicates: bool = False  # download archive to skip already-downloaded videos
 
     model_config = {"extra": "ignore"}
+
+
+# Keys whose values must never be echoed back to the client (history/detail).
+SENSITIVE_KEYS = frozenset({"password", "video_password", "twofactor"})
+
+
+def redact(options: dict | None) -> dict:
+    """Return a copy of an options dict with secret values masked."""
+    result = dict(options or {})
+    for key in SENSITIVE_KEYS:
+        if result.get(key):
+            result[key] = "********"
+    return result
 
 
 def merge_legacy(

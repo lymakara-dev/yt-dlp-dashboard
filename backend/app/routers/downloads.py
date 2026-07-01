@@ -10,10 +10,18 @@ from sqlmodel import Session, func, select
 from ..db import get_session, get_settings
 from ..downloader import ProbeError, probe
 from ..models import TERMINAL_STATES, Job, JobStatus
+from ..options import redact
 from ..queue import manager
 from ..schemas import CreatedJob, DeleteJobRequest, DownloadRequest, JobList, JobRead
 
 router = APIRouter(prefix="/api/downloads", tags=["downloads"])
+
+
+def _job_read(job: Job) -> JobRead:
+    """Validate a Job into its API shape with secret option values masked."""
+    read = JobRead.model_validate(job)
+    read.options = redact(read.options)
+    return read
 
 
 @router.post("", response_model=CreatedJob, status_code=201)
@@ -72,7 +80,7 @@ def list_downloads(
         stmt.order_by(Job.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
     ).all()
     return JobList(
-        items=[JobRead.model_validate(j) for j in items],
+        items=[_job_read(j) for j in items],
         total=total,
         page=page,
         page_size=page_size,
@@ -84,7 +92,7 @@ def get_download(job_id: int, session: Session = Depends(get_session)) -> JobRea
     job = session.get(Job, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found.")
-    return JobRead.model_validate(job)
+    return _job_read(job)
 
 
 @router.post("/{job_id}/cancel", response_model=JobRead)
@@ -96,7 +104,7 @@ def cancel_download(job_id: int, session: Session = Depends(get_session)) -> Job
         raise HTTPException(status_code=409, detail=f"Job already {job.status.value}.")
     manager.cancel(job_id)
     session.refresh(job)
-    return JobRead.model_validate(job)
+    return _job_read(job)
 
 
 @router.delete("/{job_id}", status_code=204)
