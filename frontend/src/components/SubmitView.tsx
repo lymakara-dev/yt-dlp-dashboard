@@ -36,6 +36,8 @@ export function SubmitView() {
     onSuccess: (data) => {
       setInfo(data);
       setSelection({ mode: "preset", preset: "best" });
+      // Default playlist URLs to downloading the whole list (user can change it).
+      setOptions(data.is_playlist ? { playlist: true } : {});
     },
     onError: (e: ApiError) => toast.error("Could not read URL", { description: e.message }),
   });
@@ -114,8 +116,9 @@ export function SubmitView() {
 
             {info.is_playlist && (
               <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
-                This is a playlist. Each download currently grabs a single video — paste an
-                individual video URL for per-format control.
+                This is a playlist{info.playlist_count ? ` (${info.playlist_count} items)` : ""}.
+                Use <span className="font-medium">Advanced options → Playlist</span> to download
+                the whole list, a range, or a single item.
               </div>
             )}
 
@@ -154,7 +157,11 @@ export function SubmitView() {
 
             <div className="space-y-2">
               <Label className="text-muted-foreground">Advanced options</Label>
-              <OptionsPanel value={options} onChange={setOptions} />
+              <OptionsPanel
+                value={options}
+                onChange={setOptions}
+                isPlaylist={info.is_playlist}
+              />
             </div>
 
             <Button

@@ -1,6 +1,7 @@
 """Thin wrappers around yt-dlp's YoutubeDL used as a library (no shelling out)."""
 from __future__ import annotations
 
+import os
 import shlex
 import shutil
 from typing import Any, Callable
@@ -254,6 +255,29 @@ def build_ydl_opts(
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]}
         )
 
+    # ---- playlist ----
+    wants_playlist = (
+        o.playlist
+        or bool(o.playlist_items)
+        or o.playlist_reverse
+        or o.playlist_random
+        or o.lazy_playlist
+    )
+    if wants_playlist:
+        opts["noplaylist"] = False
+    if o.playlist_items:
+        opts["playlist_items"] = o.playlist_items
+    if o.playlist_reverse:
+        opts["playlistreverse"] = True
+    if o.playlist_random:
+        opts["playlistrandom"] = True
+    if o.lazy_playlist:
+        opts["lazy_playlist"] = True
+    if o.skip_unavailable:
+        opts["ignoreerrors"] = True
+    if o.ignore_duplicates:
+        opts["download_archive"] = os.path.join(download_dir, "archive.txt")
+
     # ---- ffmpeg / normalization postprocessor args ----
     ppa: dict[str, list[str]] = {}
     if o.ffmpeg_args:
@@ -318,7 +342,41 @@ def run_download(
     return _extract_result(info)
 
 
+def _entry_file(entry: dict[str, Any]) -> tuple[str | None, int | None]:
+    rd = entry.get("requested_downloads") or []
+    if rd:
+        return (
+            rd[0].get("filepath") or rd[0].get("_filename"),
+            rd[0].get("filesize") or rd[0].get("filesize_approx"),
+        )
+    return entry.get("filepath") or entry.get("_filename"), None
+
+
 def _extract_result(info: dict[str, Any]) -> dict[str, Any]:
+    # Playlist: aggregate across entries. The single-job model can't serve each
+    # file individually, so filepath stays None (files still land on disk).
+    entries = info.get("entries")
+    if entries is not None:
+        total = 0
+        count = 0
+        for e in entries:
+            if not e:
+                continue
+            count += 1
+            _, size = _entry_file(e)
+            if size:
+                total += size
+        return {
+            "filepath": None,
+            "filesize": total or None,
+            "title": info.get("title"),
+            "uploader": info.get("uploader"),
+            "duration": None,
+            "thumbnail": info.get("thumbnail"),
+            "ext": None,
+            "playlist_count": count,
+        }
+
     filepath: str | None = None
     filesize: int | None = None
     requested = info.get("requested_downloads") or []
@@ -328,8 +386,6 @@ def _extract_result(info: dict[str, Any]) -> dict[str, Any]:
         filesize = rd.get("filesize") or rd.get("filesize_approx")
     if filepath is None:
         filepath = info.get("filepath") or info.get("_filename")
-
-    import os
 
     if filepath and filesize is None and os.path.exists(filepath):
         filesize = os.path.getsize(filepath)

@@ -71,6 +71,15 @@ export interface DownloadOptions {
   keep_audio_codec?: boolean;
   normalize_audio?: boolean;
   ffmpeg_args?: string | null;
+
+  // Playlist
+  playlist?: boolean;
+  playlist_items?: string | null;
+  playlist_reverse?: boolean;
+  playlist_random?: boolean;
+  skip_unavailable?: boolean;
+  lazy_playlist?: boolean;
+  ignore_duplicates?: boolean;
 }
 
 export interface DownloadRequest {

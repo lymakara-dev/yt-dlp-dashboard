@@ -60,6 +60,7 @@
 **Metadata &amp; playlists**
 - `/probe` extracts title, uploader, duration, thumbnail and the full format list **without downloading**.
 - Playlist URLs are detected and reported (item count) so you know what you're pointing at.
+- **Playlist downloads:** grab the whole playlist, a range/selection (`1-10,15,20:30`), reverse or random order, skip unavailable entries, stream lazily, and ignore duplicates via a download archive. Configure via **Advanced options → Playlist**. (A playlist runs as a single job producing multiple files on disk.)
 
 **Subtitles, thumbnails &amp; SponsorBlock**
 - Toggle subtitle embedding, thumbnail embedding, and SponsorBlock sponsor-segment removal per download.

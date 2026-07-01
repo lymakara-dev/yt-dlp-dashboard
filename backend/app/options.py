@@ -60,6 +60,15 @@ class DownloadOptions(BaseModel):
     write_comments: bool = False  # fetch comments (stored in .info.json)
     preserve_mtime: bool = True  # set file mtime to the upload date
 
+    # ---- playlist ----
+    playlist: bool = False  # download the whole playlist (not just one video)
+    playlist_items: str | None = None  # range/selection, e.g. "1-10,15,20:30"
+    playlist_reverse: bool = False
+    playlist_random: bool = False
+    skip_unavailable: bool = False  # continue past unavailable/errored entries
+    lazy_playlist: bool = False  # stream entries as they are parsed
+    ignore_duplicates: bool = False  # download archive to skip already-downloaded videos
+
     model_config = {"extra": "ignore"}
 
 

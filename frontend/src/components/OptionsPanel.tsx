@@ -21,9 +21,11 @@ import type { DownloadOptions } from "@/lib/types";
 export function OptionsPanel({
   value,
   onChange,
+  isPlaylist = false,
 }: {
   value: DownloadOptions;
   onChange: (o: DownloadOptions) => void;
+  isPlaylist?: boolean;
 }) {
   const set = <K extends keyof DownloadOptions>(key: K, v: DownloadOptions[K]) =>
     onChange({ ...value, [key]: v });
@@ -203,8 +205,65 @@ export function OptionsPanel({
           onChange={(v) => set("preserve_mtime", v)}
         />
       </Section>
+
+      <Section
+        title="Playlist"
+        summary={playlistSummary(value)}
+        defaultOpen={isPlaylist}
+      >
+        <OptToggle
+          label="Download entire playlist"
+          hint="Grab every video instead of just one"
+          checked={!!value.playlist}
+          onChange={(v) => set("playlist", v)}
+        />
+        <Field label="Items / range" hint="e.g. 1-10,15,20:30 (implies whole playlist)">
+          <Input
+            value={value.playlist_items ?? ""}
+            onChange={(e) => set("playlist_items", e.target.value || null)}
+            placeholder="1-10"
+          />
+        </Field>
+        <OptToggle
+          label="Reverse order"
+          checked={!!value.playlist_reverse}
+          onChange={(v) => set("playlist_reverse", v)}
+        />
+        <OptToggle
+          label="Random order"
+          checked={!!value.playlist_random}
+          onChange={(v) => set("playlist_random", v)}
+        />
+        <OptToggle
+          label="Skip unavailable videos"
+          hint="Continue past errored or removed entries"
+          checked={!!value.skip_unavailable}
+          onChange={(v) => set("skip_unavailable", v)}
+        />
+        <OptToggle
+          label="Lazy (stream) playlist"
+          hint="Start downloading before the full list is parsed"
+          checked={!!value.lazy_playlist}
+          onChange={(v) => set("lazy_playlist", v)}
+        />
+        <OptToggle
+          label="Ignore duplicates"
+          hint="Use a download archive to skip already-downloaded videos"
+          checked={!!value.ignore_duplicates}
+          onChange={(v) => set("ignore_duplicates", v)}
+        />
+      </Section>
     </div>
   );
+}
+
+function playlistSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.playlist_items) parts.push(o.playlist_items);
+  else if (o.playlist) parts.push("all");
+  if (o.playlist_reverse) parts.push("reverse");
+  if (o.playlist_random) parts.push("random");
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function audioSummary(o: DownloadOptions): string | null {

@@ -187,6 +187,35 @@ def test_custom_ffmpeg_args_parsed():
     ]
 
 
+def test_single_video_stays_noplaylist():
+    assert _build(DownloadOptions())["noplaylist"] is True
+
+
+def test_playlist_options():
+    opts = _build(
+        DownloadOptions(
+            playlist=True,
+            playlist_items="1-5,8",
+            playlist_reverse=True,
+            playlist_random=True,
+            lazy_playlist=True,
+            skip_unavailable=True,
+            ignore_duplicates=True,
+        )
+    )
+    assert opts["noplaylist"] is False
+    assert opts["playlist_items"] == "1-5,8"
+    assert opts["playlistreverse"] is True
+    assert opts["playlistrandom"] is True
+    assert opts["lazy_playlist"] is True
+    assert opts["ignoreerrors"] is True
+    assert opts["download_archive"].endswith("archive.txt")
+
+
+def test_playlist_items_alone_enables_playlist():
+    assert _build(DownloadOptions(playlist_items="1-3"))["noplaylist"] is False
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",
