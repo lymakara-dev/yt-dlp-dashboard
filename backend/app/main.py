@@ -13,7 +13,7 @@ from .config import config
 from .db import init_db
 from .downloader import ffmpeg_info
 from .queue import manager
-from .routers import downloads, files, probe, settings, ws
+from .routers import downloads, files, probe, search, settings, ws
 from .schemas import HealthResponse
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -53,6 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(probe.router)
+app.include_router(search.router)
 app.include_router(downloads.router)
 app.include_router(settings.router)
 app.include_router(files.router)

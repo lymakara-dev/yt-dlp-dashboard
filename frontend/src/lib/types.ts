@@ -187,6 +187,19 @@ export interface Job {
   finished_at: string | null;
 }
 
+export interface SearchResultItem {
+  url: string | null;
+  title: string | null;
+  uploader: string | null;
+  duration: number | null;
+  thumbnail: string | null;
+  view_count: number | null;
+}
+
+export interface SearchResponse {
+  results: SearchResultItem[];
+}
+
 export interface JobList {
   items: Job[];
   total: number;

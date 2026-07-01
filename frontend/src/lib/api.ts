@@ -4,6 +4,7 @@ import type {
   Job,
   JobList,
   ProbeResponse,
+  SearchResponse,
   Settings,
 } from "./types";
 
@@ -56,6 +57,12 @@ export const api = {
     request<Record<string, unknown>>("/api/probe/raw", {
       method: "POST",
       body: JSON.stringify({ url }),
+    }),
+
+  search: (query: string, provider: string, limit: number) =>
+    request<SearchResponse>("/api/search", {
+      method: "POST",
+      body: JSON.stringify({ query, provider, limit }),
     }),
 
   createDownload: (req: DownloadRequest) =>

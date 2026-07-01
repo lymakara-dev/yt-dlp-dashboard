@@ -45,7 +45,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] HTTP/SOCKS proxy, user-agent, custom headers, referer, geo bypass, IPv4/IPv6, bind address
 
 ## Phase 10 — Search
-- [ ] ytsearch / ytsearchN / playlist search + frontend search page
+- [x] ytsearch / ytsearchN / playlist search + frontend search page
 
 ## Phase 11 — Filtering
 - [x] Filter before download: date, duration, views, likes, title/description regex, size, resolution, ext

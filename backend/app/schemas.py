@@ -41,6 +41,26 @@ class ProbeResponse(BaseModel):
     formats: list[FormatInfo] = []
 
 
+# ---------- Search ----------
+class SearchRequest(BaseModel):
+    query: str
+    provider: str = "ytsearch"  # ytsearch | ytsearchdate | scsearch
+    limit: int = 10
+
+
+class SearchResultItem(BaseModel):
+    url: str | None = None
+    title: str | None = None
+    uploader: str | None = None
+    duration: float | None = None
+    thumbnail: str | None = None
+    view_count: int | None = None
+
+
+class SearchResponse(BaseModel):
+    results: list[SearchResultItem] = []
+
+
 # ---------- Downloads ----------
 class DownloadRequest(BaseModel):
     url: str

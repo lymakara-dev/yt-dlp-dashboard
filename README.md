@@ -62,6 +62,9 @@
 - Playlist URLs are detected and reported (item count) so you know what you're pointing at.
 - **Playlist downloads:** grab the whole playlist, a range/selection (`1-10,15,20:30`), reverse or random order, skip unavailable entries, stream lazily, and ignore duplicates via a download archive. Configure via **Advanced options → Playlist**. (A playlist runs as a single job producing multiple files on disk.)
 
+**Search**
+- A dedicated **Search** page queries YouTube (relevance or newest) or SoundCloud (`ytsearch`/`ytsearchdate`/`scsearch`), returns thumbnailed results, and queues any result with one click. Backed by `POST /api/search`.
+
 **Developer features**
 - **Raw info extraction:** `View raw JSON` on the download screen fetches the full sanitized yt-dlp info dict (`POST /api/probe/raw`) and can export it to `info.json`. **External downloaders:** use `aria2c` (or any installed downloader) with custom args. Plus the `.info.json` sidecar, custom ffmpeg/postprocessor args, and progress hooks (WebSocket). Configure via **Advanced options → Developer**.
 

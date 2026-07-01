@@ -124,6 +124,47 @@ def probe(url: str) -> ProbeResponse:
     )
 
 
+SEARCH_PROVIDERS = {"ytsearch", "ytsearchdate", "scsearch"}
+
+
+def search(query: str, *, limit: int = 10, provider: str = "ytsearch") -> list[dict[str, Any]]:
+    """Search a provider (ytsearch/ytsearchdate/scsearch) and return flat results."""
+    if provider not in SEARCH_PROVIDERS:
+        provider = "ytsearch"
+    limit = max(1, min(limit, 50))
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "extract_flat": True,
+    }
+    try:
+        with YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(f"{provider}{limit}:{query}", download=False)
+    except (DownloadError, ExtractorError) as exc:
+        raise ProbeError(_clean_message(str(exc))) from exc
+    except Exception as exc:
+        raise ProbeError(f"Search failed: {exc}") from exc
+
+    results: list[dict[str, Any]] = []
+    for e in (info or {}).get("entries", []) or []:
+        if not e:
+            continue
+        results.append(
+            {
+                "url": e.get("url") or e.get("webpage_url") or e.get("id"),
+                "title": e.get("title"),
+                "uploader": e.get("uploader") or e.get("channel"),
+                "duration": e.get("duration"),
+                "thumbnail": (e.get("thumbnails") or [{}])[-1].get("url")
+                if e.get("thumbnails")
+                else e.get("thumbnail"),
+                "view_count": e.get("view_count"),
+            }
+        )
+    return results
+
+
 def probe_raw(url: str) -> dict[str, Any]:
     """Return the full sanitized yt-dlp info dict for a URL (developer view)."""
     opts = {
