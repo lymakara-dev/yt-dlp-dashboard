@@ -219,6 +219,8 @@ Most settings are editable live from the **Settings** page (persisted in SQLite)
 | Default format | Preset applied to new downloads: `best` / `1080p` / `720p` / `audio` | `best` |
 | Max concurrency | Simultaneous downloads (1–16); the worker pool resizes live | `2` |
 | Output template | yt-dlp output template | `%(title)s [%(id)s].%(ext)s` |
+| Watch folder | Directory polled for `*.txt` URL lists to auto-queue (empty = disabled) | _empty_ |
+| Watch interval | Seconds between watch-folder scans | `30` |
 
 ### Environment variables (backend)
 
@@ -254,7 +256,10 @@ All endpoints are under `/api`; interactive OpenAPI docs are at `/docs`.
 | Method | Path | Description |
 | --- | --- | --- |
 | `POST` | `/api/probe` | Extract metadata + formats without downloading |
+| `POST` | `/api/probe/raw` | Full sanitized yt-dlp info dict (raw JSON) |
+| `POST` | `/api/search` | Search YouTube / SoundCloud for queueable results |
 | `POST` | `/api/downloads` | Enqueue a download; returns a job id |
+| `POST` | `/api/downloads/batch` | Enqueue many URLs at once (duplicates skipped) |
 | `GET` | `/api/downloads` | List jobs (paginated) |
 | `GET` | `/api/downloads/{id}` | Get a single job |
 | `POST` | `/api/downloads/{id}/cancel` | Cancel a queued or running job |
@@ -281,7 +286,7 @@ Start the backend on another port: `uv run uvicorn app.main:app --port 8080`. Fo
 <details>
 <summary><strong>A probe or download fails for a specific URL</strong></summary>
 
-Probe and download errors are surfaced as readable messages in the UI (not 500s). The most common cause is an out-of-date yt-dlp — sites change frequently. See "How do I update yt-dlp?" below. Some URLs require cookies/auth, which this single-user dashboard does not currently manage.
+Probe and download errors are surfaced as readable messages in the UI (not 500s). The most common cause is an out-of-date yt-dlp — sites change frequently. See "How do I update yt-dlp?" below. Some URLs require cookies or sign-in; supply them per download via **Advanced options → Cookies** (browser profile or `cookies.txt`) and **→ Authentication**.
 </details>
 
 <details>
