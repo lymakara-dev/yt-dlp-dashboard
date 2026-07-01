@@ -198,12 +198,23 @@ def build_ydl_opts(
         "restrictfilenames": False,
     }
 
-    if o.subtitles:
-        opts["writesubtitles"] = True
-        opts["writeautomaticsub"] = True
-        opts["subtitleslangs"] = ["en.*"]
-        if not o.audio_only:
+    # ---- subtitles ----
+    # Legacy `subtitles` toggle == download uploaded+auto English subs and embed.
+    write_subs = o.write_subs or o.subtitles
+    write_auto = o.write_auto_subs or o.subtitles
+    embed_subs = o.embed_subs or o.subtitles
+    if write_subs or write_auto:
+        if write_subs:
+            opts["writesubtitles"] = True
+        if write_auto:
+            opts["writeautomaticsub"] = True
+        opts["subtitleslangs"] = o.sub_langs or ["en.*"]
+        if embed_subs and not o.audio_only:
             postprocessors.append({"key": "FFmpegEmbedSubtitle"})
+        if o.convert_subs:
+            postprocessors.append(
+                {"key": "FFmpegSubtitlesConvertor", "format": o.convert_subs}
+            )
 
     if o.embed_thumbnail:
         opts["writethumbnail"] = True

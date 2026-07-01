@@ -45,6 +45,13 @@ export interface DownloadOptions {
   subtitles?: boolean;
   embed_thumbnail?: boolean;
   sponsorblock?: boolean;
+
+  // Subtitles (granular)
+  write_subs?: boolean;
+  write_auto_subs?: boolean;
+  sub_langs?: string[];
+  embed_subs?: boolean;
+  convert_subs?: string | null;
 }
 
 export interface DownloadRequest {

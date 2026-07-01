@@ -4,13 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { MetadataCard } from "@/components/MetadataCard";
 import { FormatPicker, type Selection } from "@/components/FormatPicker";
+import { OptionsPanel } from "@/components/OptionsPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ApiError, api } from "@/lib/api";
-import type { DownloadRequest, ProbeResponse } from "@/lib/types";
+import type { DownloadOptions, DownloadRequest, ProbeResponse } from "@/lib/types";
 
 interface Toggles {
   subtitles: boolean;
@@ -28,6 +29,7 @@ export function SubmitView() {
     embed_thumbnail: false,
     sponsorblock: false,
   });
+  const [options, setOptions] = useState<DownloadOptions>({});
 
   const probe = useMutation({
     mutationFn: (u: string) => api.probe(u),
@@ -45,6 +47,7 @@ export function SubmitView() {
       qc.invalidateQueries({ queryKey: ["downloads"] });
       setInfo(null);
       setUrl("");
+      setOptions({});
     },
     onError: (e: ApiError) => toast.error("Could not start download", { description: e.message }),
   });
@@ -61,6 +64,7 @@ export function SubmitView() {
       subtitles: toggles.subtitles,
       embed_thumbnail: toggles.embed_thumbnail,
       sponsorblock: toggles.sponsorblock,
+      options,
     };
     if (selection.mode === "preset") {
       req.quality_preset = selection.preset;
@@ -143,6 +147,11 @@ export function SubmitView() {
                 checked={toggles.sponsorblock}
                 onChange={(v) => setToggles((t) => ({ ...t, sponsorblock: v }))}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Advanced options</Label>
+              <OptionsPanel value={options} onChange={setOptions} />
             </div>
 
             <Button

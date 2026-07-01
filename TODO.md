@@ -7,14 +7,14 @@ Each `[x]` means the feature works from **both** backend and frontend, has valid
 tests where appropriate, and docs updated. One feature (group) per commit.
 
 ## Foundation (architecture)
-- [~] Central `DownloadOptions` model (backend `options.py`, frontend `types.ts`)
-- [~] `Job.options` JSON column + lightweight additive SQLite migration runner
-- [~] `build_ydl_opts()` refactored to translate the full options model
-- [~] Backend test scaffolding (pytest)
-- [ ] Advanced "Options" UI panel wired into SubmitView + Settings defaults
+- [x] Central `DownloadOptions` model (backend `options.py`, frontend `types.ts`)
+- [x] `Job.options` JSON column + lightweight additive SQLite migration runner
+- [x] `build_ydl_opts()` refactored to translate the full options model
+- [x] Backend test scaffolding (pytest)
+- [x] Advanced "Options" UI panel wired into SubmitView (`OptionsPanel.tsx`)
 
 ## Phase 1 — Subtitles / Thumbnails / Metadata
-- [ ] Subtitles: download, auto-subs, select language(s), multiple langs, embed, save separately, convert format
+- [x] Subtitles: download, auto-subs, select language(s), multiple langs, embed, save separately, convert format
 - [ ] Thumbnails: download, download all, embed, convert format
 - [ ] Metadata: info JSON, embed metadata, embed chapters, preserve upload date/uploader/description, comments
 

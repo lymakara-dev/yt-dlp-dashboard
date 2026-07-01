@@ -34,6 +34,13 @@ class DownloadOptions(BaseModel):
     embed_thumbnail: bool = False
     sponsorblock: bool = False
 
+    # ---- subtitles (granular) ----
+    write_subs: bool = False  # download real (uploaded) subtitles
+    write_auto_subs: bool = False  # download auto-generated subtitles
+    sub_langs: list[str] = Field(default_factory=list)  # e.g. ["en", "es", "en.*"]
+    embed_subs: bool = False  # mux subtitles into the video container
+    convert_subs: str | None = None  # convert to srt | ass | vtt | lrc
+
     model_config = {"extra": "ignore"}
 
 

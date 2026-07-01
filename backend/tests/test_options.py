@@ -60,6 +60,36 @@ def test_subtitles_and_thumbnail_and_sponsorblock():
     assert "ModifyChapters" in keys
 
 
+def test_granular_subtitles_langs_and_convert():
+    opts = _build(
+        DownloadOptions(
+            write_subs=True,
+            write_auto_subs=True,
+            sub_langs=["en", "es"],
+            embed_subs=True,
+            convert_subs="srt",
+        )
+    )
+    assert opts["writesubtitles"] is True
+    assert opts["writeautomaticsub"] is True
+    assert opts["subtitleslangs"] == ["en", "es"]
+    keys = _pp_keys(opts)
+    assert "FFmpegEmbedSubtitle" in keys
+    assert "FFmpegSubtitlesConvertor" in keys
+
+
+def test_write_subs_without_embed_saves_separately():
+    opts = _build(DownloadOptions(write_subs=True, sub_langs=["fr"]))
+    assert opts["writesubtitles"] is True
+    assert "writeautomaticsub" not in opts
+    assert "FFmpegEmbedSubtitle" not in _pp_keys(opts)
+
+
+def test_audio_only_never_embeds_subs():
+    opts = _build(DownloadOptions(audio_only=True, subtitles=True))
+    assert "FFmpegEmbedSubtitle" not in _pp_keys(opts)
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",

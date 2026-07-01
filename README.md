@@ -62,6 +62,7 @@
 
 **Subtitles, thumbnails &amp; SponsorBlock**
 - Toggle subtitle embedding, thumbnail embedding, and SponsorBlock sponsor-segment removal per download.
+- **Subtitles (advanced):** download uploader subtitles and/or auto-generated captions, choose one or more languages (`en, es, en.*`), embed into the video or keep as separate files, and convert to `srt`/`ass`/`vtt`/`lrc`. Configure via the **Advanced options → Subtitles** panel on the download screen.
 
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
