@@ -1,4 +1,5 @@
 import { Music, Video, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,7 +14,24 @@ import type { FormatInfo, QualityPreset } from "@/lib/types";
 
 export type Selection =
   | { mode: "preset"; preset: QualityPreset }
-  | { mode: "format"; formatId: string; audioOnly: boolean };
+  | { mode: "format"; formatId: string; audioOnly: boolean }
+  | { mode: "selector"; selector: string };
+
+// Copy-paste yt-dlp format selector snippets surfaced as quick-insert chips.
+const SELECTOR_EXAMPLES: { label: string; value: string }[] = [
+  { label: "best", value: "best" },
+  { label: "bv+ba", value: "bestvideo+bestaudio" },
+  { label: "worst", value: "worst" },
+  { label: "video only", value: "bv" },
+  { label: "audio only", value: "ba" },
+  { label: "≤1080p", value: "bv*[height<=1080]+ba/b[height<=1080]" },
+  { label: "≥60fps", value: "bv*[fps>=60]+ba/b" },
+  { label: "avc1 (H.264)", value: "bv*[vcodec^=avc1]+ba/b" },
+  { label: "av01", value: "bv*[vcodec^=av01]+ba/b" },
+  { label: "HDR", value: "bv*[dynamic_range*=HDR]+ba/b" },
+  { label: "≤2 Mbps", value: "bv*[tbr<=2000]+ba/b" },
+  { label: "mp4 only", value: "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" },
+];
 
 const PRESETS: { key: QualityPreset; label: string; hint: string; icon: typeof Zap }[] = [
   { key: "best", label: "Best", hint: "Video + audio", icon: Zap },
@@ -50,8 +68,9 @@ export function FormatPicker({
       <TabsList>
         <TabsTrigger value="presets">Presets</TabsTrigger>
         <TabsTrigger value="advanced" disabled={!hasFormats}>
-          Advanced
+          Format ID
         </TabsTrigger>
+        <TabsTrigger value="selector">Selector</TabsTrigger>
       </TabsList>
 
       <TabsContent value="presets">
@@ -102,6 +121,39 @@ export function FormatPicker({
         </Select>
         <p className="mt-2 text-xs text-muted-foreground">
           Video-only formats are automatically merged with the best audio track.
+        </p>
+      </TabsContent>
+
+      <TabsContent value="selector">
+        <Input
+          value={value.mode === "selector" ? value.selector : ""}
+          onChange={(e) => onChange({ mode: "selector", selector: e.target.value })}
+          placeholder="e.g. bv*[height<=1080][fps>=60]+ba/b"
+          className="font-mono text-sm"
+        />
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {SELECTOR_EXAMPLES.map((ex) => (
+            <button
+              key={ex.label}
+              type="button"
+              onClick={() => onChange({ mode: "selector", selector: ex.value })}
+              className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              {ex.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Any yt-dlp{" "}
+          <a
+            href="https://github.com/yt-dlp/yt-dlp#format-selection"
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+          >
+            format selector
+          </a>{" "}
+          is passed through verbatim.
         </p>
       </TabsContent>
     </Tabs>

@@ -1,6 +1,8 @@
 """Translation of DownloadOptions into YoutubeDL option dicts."""
 from __future__ import annotations
 
+import pytest
+
 from app.downloader import build_ydl_opts
 from app.options import DownloadOptions, merge_legacy
 
@@ -45,6 +47,25 @@ def test_format_id_merges_audio():
 def test_raw_format_selector_wins():
     opts = _build(DownloadOptions(format_selector="bestvideo[height<=720]+bestaudio"))
     assert opts["format"] == "bestvideo[height<=720]+bestaudio"
+
+
+@pytest.mark.parametrize(
+    "selector",
+    [
+        "best",
+        "worst",
+        "bv*+ba/b",
+        "bv*[fps>=60]+ba/b",
+        "bv*[vcodec^=av01]+ba/b",
+        "bv*[dynamic_range*=HDR]+ba/b",
+        "bv*[tbr<=2000]+ba/b",
+        "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]",
+    ],
+)
+def test_arbitrary_selectors_pass_through(selector):
+    # Even when a format_id/preset is also set, the raw selector wins verbatim.
+    opts = _build(DownloadOptions(format_selector=selector, format_id="137", quality_preset="720p"))
+    assert opts["format"] == selector
 
 
 def test_subtitles_and_thumbnail_and_sponsorblock():

@@ -69,9 +69,12 @@ export function SubmitView() {
     if (selection.mode === "preset") {
       req.quality_preset = selection.preset;
       req.audio_only = selection.preset === "audio";
-    } else {
+    } else if (selection.mode === "format") {
       req.format_id = selection.formatId;
       req.audio_only = selection.audioOnly;
+    } else {
+      // Raw selector wins over format_id/preset in build_ydl_opts.
+      req.options = { ...options, format_selector: selection.selector };
     }
     create.mutate(req);
   };

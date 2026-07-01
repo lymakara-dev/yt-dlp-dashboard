@@ -23,8 +23,8 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Audio quality, keep original codec, normalize audio, custom ffmpeg options
 
 ## Phase 3 — Advanced format selection
-- [ ] Full yt-dlp selector support (best/bv+ba/worst/filters/height/fps/codec/HDR/bitrate/ext)
-- [ ] UI: Basic mode + Advanced (raw selector) mode
+- [x] Full yt-dlp selector support (best/bv+ba/worst/filters/height/fps/codec/HDR/bitrate/ext)
+- [x] UI: Basic mode + Advanced (raw selector) mode
 
 ## Phase 4 — Playlist
 - [ ] Entire playlist, range, reverse, random, skip unavailable, flatten, ignore duplicates

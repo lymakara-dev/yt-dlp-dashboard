@@ -54,7 +54,8 @@
 
 **Formats &amp; quality**
 - One-click presets: **Best (video + audio)**, **1080p**, **720p**, **Audio only (mp3)**.
-- Advanced mode: pick an exact `format_id` from the probed list; video-only formats are automatically merged with the best audio track.
+- **Format ID** mode: pick an exact `format_id` from the probed list; video-only formats are automatically merged with the best audio track.
+- **Selector** mode: enter any raw yt-dlp [format selector](https://github.com/yt-dlp/yt-dlp#format-selection) (e.g. `bv*[height<=1080][fps>=60]+ba/b`, codec/HDR/bitrate/extension filters) — passed through verbatim, with quick-insert example chips.
 
 **Metadata &amp; playlists**
 - `/probe` extracts title, uploader, duration, thumbnail and the full format list **without downloading**.
