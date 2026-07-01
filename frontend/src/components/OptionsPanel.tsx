@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { DownloadOptions } from "@/lib/types";
 
@@ -329,8 +330,87 @@ export function OptionsPanel({
           onChange={(v) => set("resume", v)}
         />
       </Section>
+
+      <Section title="Network" summary={networkSummary(value)}>
+        <Field label="Proxy" hint="http://host:port or socks5://host:port">
+          <Input
+            value={value.proxy ?? ""}
+            onChange={(e) => set("proxy", e.target.value || null)}
+            placeholder="none"
+            className="font-mono text-sm"
+          />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="IP version">
+            <Select
+              value={value.force_ip ?? "auto"}
+              onValueChange={(v) => set("force_ip", v === "auto" ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Automatic</SelectItem>
+                <SelectItem value="ipv4">Force IPv4</SelectItem>
+                <SelectItem value="ipv6">Force IPv6</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Bind address" hint="Local interface/IP (overrides IP version)">
+            <Input
+              value={value.source_address ?? ""}
+              onChange={(e) => set("source_address", e.target.value || null)}
+              placeholder="auto"
+            />
+          </Field>
+          <Field label="User-Agent">
+            <Input
+              value={value.user_agent ?? ""}
+              onChange={(e) => set("user_agent", e.target.value || null)}
+              placeholder="default"
+            />
+          </Field>
+          <Field label="Referer">
+            <Input
+              value={value.referer ?? ""}
+              onChange={(e) => set("referer", e.target.value || null)}
+              placeholder="none"
+            />
+          </Field>
+        </div>
+        <Field label="Custom headers" hint="One per line, e.g. Authorization: Bearer …">
+          <Textarea
+            value={value.http_headers ?? ""}
+            onChange={(e) => set("http_headers", e.target.value || null)}
+            placeholder={"X-Api-Key: abc123"}
+            className="font-mono text-sm"
+          />
+        </Field>
+        <OptToggle
+          label="Geo bypass"
+          hint="Fake X-Forwarded-For to bypass geo restrictions"
+          checked={value.geo_bypass !== false}
+          onChange={(v) => set("geo_bypass", v)}
+        />
+        <Field label="Geo bypass country" hint="ISO code, e.g. US, GB, JP">
+          <Input
+            value={value.geo_bypass_country ?? ""}
+            onChange={(e) => set("geo_bypass_country", e.target.value || null)}
+            placeholder="auto"
+          />
+        </Field>
+      </Section>
     </div>
   );
+}
+
+function networkSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.proxy) parts.push("proxy");
+  if (o.force_ip) parts.push(o.force_ip);
+  if (o.user_agent) parts.push("UA");
+  if (o.http_headers) parts.push("headers");
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function numOrNull(v: string): number | null {

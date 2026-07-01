@@ -74,6 +74,9 @@
 **Download control**
 - Per-download speed limit (`2M`/`500K`), retry count, fragment retries, retry delay, concurrent fragment downloads, resume toggle, download sections/timestamps (`*10:00-15:00` or a chapter regex), and max/min file-size filters. Configure via **Advanced options → Download control**.
 
+**Network**
+- HTTP/SOCKS proxy, custom User-Agent, Referer, arbitrary request headers, geo-bypass (with optional country), IPv4/IPv6 forcing, and local bind address. Configure via **Advanced options → Network**.
+
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
 

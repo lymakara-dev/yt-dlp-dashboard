@@ -91,6 +91,16 @@ export interface DownloadOptions {
   download_sections?: string | null;
   max_filesize?: string | null;
   min_filesize?: string | null;
+
+  // Network
+  proxy?: string | null;
+  source_address?: string | null;
+  force_ip?: string | null;
+  user_agent?: string | null;
+  referer?: string | null;
+  http_headers?: string | null;
+  geo_bypass?: boolean;
+  geo_bypass_country?: string | null;
 }
 
 export interface DownloadRequest {

@@ -71,6 +71,16 @@ class DownloadOptions(BaseModel):
     max_filesize: str | None = None  # skip files larger than this, e.g. "500M"
     min_filesize: str | None = None  # skip files smaller than this, e.g. "1M"
 
+    # ---- network ----
+    proxy: str | None = None  # http://host:port or socks5://host:port
+    source_address: str | None = None  # bind to a local interface/IP
+    force_ip: str | None = None  # "ipv4" | "ipv6" (overridden by source_address)
+    user_agent: str | None = None
+    referer: str | None = None
+    http_headers: str | None = None  # newline-separated "Key: Value" pairs
+    geo_bypass: bool = True  # fake X-Forwarded-For to bypass geo restrictions
+    geo_bypass_country: str | None = None  # ISO 3166-2 code, e.g. "US"
+
     # ---- playlist ----
     playlist: bool = False  # download the whole playlist (not just one video)
     playlist_items: str | None = None  # range/selection, e.g. "1-10,15,20:30"

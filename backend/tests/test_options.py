@@ -261,6 +261,38 @@ def test_resume_default_leaves_continuedl_unset():
     assert "continuedl" not in _build(DownloadOptions())
 
 
+def test_network_headers_proxy_and_geo():
+    opts = _build(
+        DownloadOptions(
+            proxy="socks5://127.0.0.1:9050",
+            user_agent="MyAgent/1.0",
+            referer="https://example.com",
+            http_headers="X-Foo: bar\nAuthorization: Bearer x",
+            geo_bypass=False,
+            geo_bypass_country="US",
+        )
+    )
+    assert opts["proxy"] == "socks5://127.0.0.1:9050"
+    assert opts["http_headers"]["User-Agent"] == "MyAgent/1.0"
+    assert opts["http_headers"]["Referer"] == "https://example.com"
+    assert opts["http_headers"]["X-Foo"] == "bar"
+    assert opts["http_headers"]["Authorization"] == "Bearer x"
+    assert opts["geo_bypass"] is False
+    assert opts["geo_bypass_country"] == "US"
+
+
+def test_force_ipv4_and_ipv6_and_bind():
+    assert _build(DownloadOptions(force_ip="ipv4"))["source_address"] == "0.0.0.0"
+    assert _build(DownloadOptions(force_ip="ipv6"))["source_address"] == "::"
+    # explicit bind address wins over force_ip
+    opts = _build(DownloadOptions(force_ip="ipv6", source_address="192.168.1.5"))
+    assert opts["source_address"] == "192.168.1.5"
+
+
+def test_geo_bypass_default_not_emitted():
+    assert "geo_bypass" not in _build(DownloadOptions())
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",

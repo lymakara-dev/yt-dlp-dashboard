@@ -342,6 +342,35 @@ def build_ydl_opts(
     if min_size:
         opts["min_filesize"] = min_size
 
+    # ---- network ----
+    if o.proxy:
+        opts["proxy"] = o.proxy
+    headers: dict[str, str] = {}
+    if o.user_agent:
+        headers["User-Agent"] = o.user_agent
+    if o.referer:
+        headers["Referer"] = o.referer
+    for line in (o.http_headers or "").splitlines():
+        line = line.strip()
+        if not line or ":" not in line:
+            continue
+        key, _, val = line.partition(":")
+        key = key.strip()
+        if key:
+            headers[key] = val.strip()
+    if headers:
+        opts["http_headers"] = headers
+    if not o.geo_bypass:
+        opts["geo_bypass"] = False
+    if o.geo_bypass_country:
+        opts["geo_bypass_country"] = o.geo_bypass_country
+    if o.source_address:
+        opts["source_address"] = o.source_address
+    elif o.force_ip == "ipv4":
+        opts["source_address"] = "0.0.0.0"
+    elif o.force_ip == "ipv6":
+        opts["source_address"] = "::"
+
     # ---- playlist ----
     wants_playlist = (
         o.playlist

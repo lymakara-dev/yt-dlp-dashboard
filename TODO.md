@@ -42,7 +42,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Speed limit, retries, retry delay, resume, concurrent fragments, sections/timestamps, max/min filesize
 
 ## Phase 9 — Network
-- [ ] HTTP/SOCKS proxy, user-agent, custom headers, referer, geo bypass, IPv4/IPv6, bind address
+- [x] HTTP/SOCKS proxy, user-agent, custom headers, referer, geo bypass, IPv4/IPv6, bind address
 
 ## Phase 10 — Search
 - [ ] ytsearch / ytsearchN / playlist search + frontend search page
