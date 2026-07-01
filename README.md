@@ -117,6 +117,7 @@
 
 **Polish**
 - Responsive layout, dark mode (default) and light mode, built with [shadcn/ui](https://ui.shadcn.com)-style components.
+- **Quality-of-life:** paste from clipboard, drag-and-drop a URL onto the field, press `/` to focus the URL input, toast notifications, and a live speed graph — see **Real-time progress**.
 
 ## Tech Stack
 

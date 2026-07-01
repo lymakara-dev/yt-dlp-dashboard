@@ -60,7 +60,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] JSON output, raw info extraction, export metadata, progress hooks, external downloaders (aria2), custom postprocessors
 
 ## Phase 15 — UX
-- [ ] Better progress bars, speed graph, ETA, retry indicator, queue viz, dark mode, keyboard shortcuts, drag-and-drop, clipboard detection, toasts, responsive
+- [x] Better progress bars, speed graph, ETA, retry indicator, queue viz, dark mode, keyboard shortcuts, drag-and-drop, clipboard detection, toast notifications, responsive layout
 
 ## Wrap-up
 - [ ] Full code review + remove dead code

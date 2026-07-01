@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Braces, Download, Loader2, Search } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, Braces, ClipboardPaste, Download, Loader2, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MetadataCard } from "@/components/MetadataCard";
 import { FormatPicker, type Selection } from "@/components/FormatPicker";
@@ -64,9 +64,47 @@ export function SubmitView() {
     onError: (e: ApiError) => toast.error("Could not start download", { description: e.message }),
   });
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const onProbe = (e: React.FormEvent) => {
     e.preventDefault();
     if (url.trim()) probe.mutate(url.trim());
+  };
+
+  // Keyboard shortcut: "/" focuses the URL field when not already typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement;
+      const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  const pasteFromClipboard = async () => {
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (!text) return;
+      setUrl(text);
+      probe.mutate(text);
+    } catch {
+      toast.error("Clipboard unavailable", { description: "Paste the URL manually (Ctrl/Cmd+V)." });
+    }
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const text = (
+      e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain")
+    ).trim();
+    if (text) {
+      setUrl(text);
+      probe.mutate(text);
+    }
   };
 
   const onDownload = () => {
@@ -96,15 +134,31 @@ export function SubmitView() {
   return (
     <Card>
       <CardContent className="space-y-5 p-5 sm:p-6">
-        <form onSubmit={onProbe} className="flex flex-col gap-2 sm:flex-row">
+        <form
+          onSubmit={onProbe}
+          className="flex flex-col gap-2 sm:flex-row"
+          onDrop={onDrop}
+          onDragOver={(e) => e.preventDefault()}
+        >
           <Input
+            ref={inputRef}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste a video or playlist URL…"
+            placeholder="Paste or drop a URL, or press / to focus…"
             type="url"
             autoFocus
             className="h-11 text-base"
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            onClick={pasteFromClipboard}
+            title="Paste from clipboard"
+          >
+            <ClipboardPaste className="h-4 w-4" />
+            <span className="sm:hidden">Paste</span>
+          </Button>
           <Button type="submit" size="lg" disabled={probe.isPending || !url.trim()}>
             {probe.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
