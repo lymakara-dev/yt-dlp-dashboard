@@ -57,6 +57,13 @@ export interface DownloadOptions {
   write_thumbnail?: boolean;
   write_all_thumbnails?: boolean;
   convert_thumbnail?: string | null;
+
+  // Metadata
+  write_info_json?: boolean;
+  embed_metadata?: boolean;
+  embed_chapters?: boolean;
+  write_comments?: boolean;
+  preserve_mtime?: boolean;
 }
 
 export interface DownloadRequest {

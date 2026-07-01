@@ -230,6 +230,18 @@ def build_ydl_opts(
     if o.embed_thumbnail:
         postprocessors.append({"key": "EmbedThumbnail"})
 
+    # ---- metadata ----
+    if o.write_info_json:
+        opts["writeinfojson"] = True
+    if o.write_comments:
+        opts["getcomments"] = True
+    opts["updatetime"] = o.preserve_mtime
+    if o.embed_metadata or o.embed_chapters:
+        meta_pp: dict[str, Any] = {"key": "FFmpegMetadata", "add_metadata": o.embed_metadata}
+        if o.embed_chapters:
+            meta_pp["add_chapters"] = True
+        postprocessors.append(meta_pp)
+
     if o.sponsorblock:
         postprocessors.append({"key": "SponsorBlock", "categories": ["sponsor"]})
         postprocessors.append(

@@ -110,6 +110,35 @@ def test_write_thumbnail_only():
     assert "EmbedThumbnail" not in _pp_keys(opts)
 
 
+def test_metadata_info_json_comments_and_embed():
+    opts = _build(
+        DownloadOptions(
+            write_info_json=True,
+            write_comments=True,
+            embed_metadata=True,
+            embed_chapters=True,
+        )
+    )
+    assert opts["writeinfojson"] is True
+    assert opts["getcomments"] is True
+    meta = [p for p in opts["postprocessors"] if p["key"] == "FFmpegMetadata"]
+    assert len(meta) == 1
+    assert meta[0]["add_metadata"] is True
+    assert meta[0]["add_chapters"] is True
+
+
+def test_embed_chapters_without_full_metadata():
+    opts = _build(DownloadOptions(embed_chapters=True))
+    meta = [p for p in opts["postprocessors"] if p["key"] == "FFmpegMetadata"]
+    assert meta[0]["add_metadata"] is False
+    assert meta[0]["add_chapters"] is True
+
+
+def test_preserve_mtime_default_and_off():
+    assert _build(DownloadOptions())["updatetime"] is True
+    assert _build(DownloadOptions(preserve_mtime=False))["updatetime"] is False
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",

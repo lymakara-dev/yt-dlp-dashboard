@@ -118,8 +118,50 @@ export function OptionsPanel({
           Embed the thumbnail into the media file using the “Embed thumbnail” toggle above.
         </p>
       </Section>
+
+      <Section title="Metadata" summary={metadataSummary(value)}>
+        <OptToggle
+          label="Embed metadata"
+          hint="Store title, uploader, date & description in the file"
+          checked={!!value.embed_metadata}
+          onChange={(v) => set("embed_metadata", v)}
+        />
+        <OptToggle
+          label="Embed chapters"
+          hint="Write chapter markers into the file"
+          checked={!!value.embed_chapters}
+          onChange={(v) => set("embed_chapters", v)}
+        />
+        <OptToggle
+          label="Save metadata JSON"
+          hint="Write the full .info.json sidecar"
+          checked={!!value.write_info_json}
+          onChange={(v) => set("write_info_json", v)}
+        />
+        <OptToggle
+          label="Fetch comments"
+          hint="Include comments in the .info.json (where supported)"
+          checked={!!value.write_comments}
+          onChange={(v) => set("write_comments", v)}
+        />
+        <OptToggle
+          label="Preserve upload date"
+          hint="Set the file modified time to the upload date"
+          checked={value.preserve_mtime !== false}
+          onChange={(v) => set("preserve_mtime", v)}
+        />
+      </Section>
     </div>
   );
+}
+
+function metadataSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.embed_metadata) parts.push("embed");
+  if (o.embed_chapters) parts.push("chapters");
+  if (o.write_info_json) parts.push("json");
+  if (o.write_comments) parts.push("comments");
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function thumbnailSummary(o: DownloadOptions): string | null {

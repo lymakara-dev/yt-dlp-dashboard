@@ -16,7 +16,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 ## Phase 1 — Subtitles / Thumbnails / Metadata
 - [x] Subtitles: download, auto-subs, select language(s), multiple langs, embed, save separately, convert format
 - [x] Thumbnails: download, download all, embed, convert format
-- [ ] Metadata: info JSON, embed metadata, embed chapters, preserve upload date/uploader/description, comments
+- [x] Metadata: info JSON, embed metadata, embed chapters, preserve upload date/uploader/description, comments
 
 ## Phase 2 — Audio
 - [ ] Extract audio only (mp3, aac, opus, flac, wav, vorbis, m4a)

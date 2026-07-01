@@ -46,6 +46,13 @@ class DownloadOptions(BaseModel):
     write_all_thumbnails: bool = False  # save every available thumbnail
     convert_thumbnail: str | None = None  # convert to jpg | png | webp
 
+    # ---- metadata ----
+    write_info_json: bool = False  # write the full .info.json sidecar
+    embed_metadata: bool = False  # embed title/uploader/date/description in-container
+    embed_chapters: bool = False  # embed chapter markers
+    write_comments: bool = False  # fetch comments (stored in .info.json)
+    preserve_mtime: bool = True  # set file mtime to the upload date
+
     model_config = {"extra": "ignore"}
 
 

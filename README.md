@@ -64,6 +64,7 @@
 - Toggle subtitle embedding, thumbnail embedding, and SponsorBlock sponsor-segment removal per download.
 - **Subtitles (advanced):** download uploader subtitles and/or auto-generated captions, choose one or more languages (`en, es, en.*`), embed into the video or keep as separate files, and convert to `srt`/`ass`/`vtt`/`lrc`. Configure via the **Advanced options → Subtitles** panel on the download screen.
 - **Thumbnails (advanced):** save the thumbnail as a separate file, save every available thumbnail, embed the cover into the media file, and convert to `jpg`/`png`/`webp`.
+- **Metadata (advanced):** embed metadata (title, uploader, date, description) and chapter markers into the file, write the full `.info.json` sidecar, fetch comments, and preserve the upload date as the file's modified time.
 
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
