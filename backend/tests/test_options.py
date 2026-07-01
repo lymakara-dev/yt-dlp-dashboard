@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.downloader import build_ydl_opts
+from app.downloader import build_ydl_opts, parse_bytes, parse_download_sections
 from app.options import DownloadOptions, merge_legacy
 
 
@@ -214,6 +214,51 @@ def test_playlist_options():
 
 def test_playlist_items_alone_enables_playlist():
     assert _build(DownloadOptions(playlist_items="1-3"))["noplaylist"] is False
+
+
+def test_parse_bytes():
+    assert parse_bytes("500K") == 512000
+    assert parse_bytes("2.5M") == int(2.5 * 1024**2)
+    assert parse_bytes("1G") == 1024**3
+    assert parse_bytes("1048576") == 1048576
+    assert parse_bytes(None) is None
+    assert parse_bytes("garbage") is None
+
+
+def test_download_control_options():
+    opts = _build(
+        DownloadOptions(
+            rate_limit="2M",
+            retries=5,
+            fragment_retries=10,
+            retry_delay=3,
+            concurrent_fragments=4,
+            resume=False,
+            max_filesize="500M",
+            min_filesize="1M",
+        )
+    )
+    assert opts["ratelimit"] == 2 * 1024**2
+    assert opts["retries"] == 5
+    assert opts["fragment_retries"] == 10
+    assert opts["retry_sleep_functions"]["http"](0) == 3
+    assert opts["concurrent_fragment_downloads"] == 4
+    assert opts["continuedl"] is False
+    assert opts["max_filesize"] == 500 * 1024**2
+    assert opts["min_filesize"] == 1024**2
+
+
+def test_download_sections_timestamp():
+    func = parse_download_sections("*10:00-15:00")
+    assert func is not None
+    # yt-dlp's range func yields dicts with start/end for a fake info dict.
+    ranges = list(func({"duration": 3600}, None))
+    assert ranges[0]["start_time"] == 600
+    assert ranges[0]["end_time"] == 900
+
+
+def test_resume_default_leaves_continuedl_unset():
+    assert "continuedl" not in _build(DownloadOptions())
 
 
 def test_merge_legacy_blob_wins_over_columns():

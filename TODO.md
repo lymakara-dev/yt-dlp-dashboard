@@ -39,7 +39,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [ ] Username/password, cookies, OAuth (netrc), age-restricted, membership content
 
 ## Phase 8 — Download control
-- [ ] Speed limit, retries, retry delay, resume, concurrent fragments, sections/timestamps, max/min filesize
+- [x] Speed limit, retries, retry delay, resume, concurrent fragments, sections/timestamps, max/min filesize
 
 ## Phase 9 — Network
 - [ ] HTTP/SOCKS proxy, user-agent, custom headers, referer, geo bypass, IPv4/IPv6, bind address

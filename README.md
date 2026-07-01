@@ -71,6 +71,9 @@
 **Audio extraction**
 - Extract audio-only downloads to `mp3`, `aac`, `opus`, `flac`, `wav`, `vorbis` or `m4a`, set the quality (VBR `0`–`10` or a kbps value), keep the original codec (copy), normalize loudness (ffmpeg `loudnorm`), and pass custom ffmpeg arguments. Configure via **Advanced options → Audio**.
 
+**Download control**
+- Per-download speed limit (`2M`/`500K`), retry count, fragment retries, retry delay, concurrent fragment downloads, resume toggle, download sections/timestamps (`*10:00-15:00` or a chapter regex), and max/min file-size filters. Configure via **Advanced options → Download control**.
+
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
 

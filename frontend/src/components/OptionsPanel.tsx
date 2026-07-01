@@ -253,8 +253,98 @@ export function OptionsPanel({
           onChange={(v) => set("ignore_duplicates", v)}
         />
       </Section>
+
+      <Section title="Download control" summary={downloadControlSummary(value)}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Speed limit" hint="e.g. 2M, 500K (per download)">
+            <Input
+              value={value.rate_limit ?? ""}
+              onChange={(e) => set("rate_limit", e.target.value || null)}
+              placeholder="unlimited"
+            />
+          </Field>
+          <Field label="Concurrent fragments" hint="Parallel fragment downloads">
+            <Input
+              type="number"
+              min={1}
+              value={value.concurrent_fragments ?? ""}
+              onChange={(e) => set("concurrent_fragments", numOrNull(e.target.value))}
+              placeholder="1"
+            />
+          </Field>
+          <Field label="Retries">
+            <Input
+              type="number"
+              min={0}
+              value={value.retries ?? ""}
+              onChange={(e) => set("retries", numOrNull(e.target.value))}
+              placeholder="10"
+            />
+          </Field>
+          <Field label="Fragment retries">
+            <Input
+              type="number"
+              min={0}
+              value={value.fragment_retries ?? ""}
+              onChange={(e) => set("fragment_retries", numOrNull(e.target.value))}
+              placeholder="10"
+            />
+          </Field>
+          <Field label="Retry delay (s)">
+            <Input
+              type="number"
+              min={0}
+              value={value.retry_delay ?? ""}
+              onChange={(e) => set("retry_delay", numOrNull(e.target.value))}
+              placeholder="0"
+            />
+          </Field>
+          <Field label="Download sections" hint="e.g. *10:00-15:00 or a chapter regex">
+            <Input
+              value={value.download_sections ?? ""}
+              onChange={(e) => set("download_sections", e.target.value || null)}
+              placeholder="*00:30-02:00"
+              className="font-mono text-sm"
+            />
+          </Field>
+          <Field label="Max file size" hint="Skip larger, e.g. 500M">
+            <Input
+              value={value.max_filesize ?? ""}
+              onChange={(e) => set("max_filesize", e.target.value || null)}
+              placeholder="none"
+            />
+          </Field>
+          <Field label="Min file size" hint="Skip smaller, e.g. 1M">
+            <Input
+              value={value.min_filesize ?? ""}
+              onChange={(e) => set("min_filesize", e.target.value || null)}
+              placeholder="none"
+            />
+          </Field>
+        </div>
+        <OptToggle
+          label="Resume partial downloads"
+          hint="Continue from an interrupted .part file"
+          checked={value.resume !== false}
+          onChange={(v) => set("resume", v)}
+        />
+      </Section>
     </div>
   );
+}
+
+function numOrNull(v: string): number | null {
+  if (v.trim() === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function downloadControlSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.rate_limit) parts.push(`≤${o.rate_limit}`);
+  if (o.download_sections) parts.push("sections");
+  if (o.concurrent_fragments) parts.push(`${o.concurrent_fragments}x frags`);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function playlistSummary(o: DownloadOptions): string | null {

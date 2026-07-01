@@ -146,6 +146,65 @@ QUALITY_PRESETS: dict[str, str] = {
 }
 
 
+_BYTE_UNITS = {"K": 1024, "M": 1024**2, "G": 1024**3, "T": 1024**4}
+
+
+def parse_bytes(value: str | None) -> int | None:
+    """Parse a human byte size ("500K", "2.5M", "1G", "1048576") into an int."""
+    if value is None:
+        return None
+    v = value.strip().upper().rstrip("B")
+    if not v:
+        return None
+    mult = 1
+    if v[-1] in _BYTE_UNITS:
+        mult = _BYTE_UNITS[v[-1]]
+        v = v[:-1]
+    try:
+        return int(float(v) * mult)
+    except ValueError:
+        return None
+
+
+def _parse_timestamp(value: str) -> float:
+    """Parse "SS", "MM:SS" or "HH:MM:SS" into seconds."""
+    seconds = 0.0
+    for part in value.split(":"):
+        seconds = seconds * 60 + float(part or 0)
+    return seconds
+
+
+def parse_download_sections(spec: str | None):
+    """Build a yt-dlp download_ranges function from a "*start-end,chapter" spec.
+
+    Timestamp ranges are prefixed with `*` (e.g. `*10:00-15:00`, open-ended
+    with `*-30` or `*90-`). Anything else is treated as a chapter-title regex.
+    Returns None when nothing parseable is present.
+    """
+    if not spec:
+        return None
+    from yt_dlp.utils import download_range_func
+
+    chapters: list[str] = []
+    ranges: list[tuple[float, float]] = []
+    for chunk in spec.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        if chunk.startswith("*"):
+            body = chunk[1:]
+            if "-" in body:
+                a, b = body.split("-", 1)
+                start = _parse_timestamp(a) if a.strip() else 0.0
+                end = _parse_timestamp(b) if b.strip() else float("inf")
+                ranges.append((start, end))
+        else:
+            chapters.append(chunk)
+    if not chapters and not ranges:
+        return None
+    return download_range_func(chapters, ranges)
+
+
 class DownloadCancelled(Exception):
     """Raised from inside a progress hook to abort an in-flight download."""
 
@@ -254,6 +313,34 @@ def build_ydl_opts(
         postprocessors.append(
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]}
         )
+
+    # ---- download control ----
+    rate = parse_bytes(o.rate_limit)
+    if rate:
+        opts["ratelimit"] = rate
+    if o.retries is not None:
+        opts["retries"] = o.retries
+    if o.fragment_retries is not None:
+        opts["fragment_retries"] = o.fragment_retries
+    if o.retry_delay is not None:
+        delay = o.retry_delay
+        opts["retry_sleep_functions"] = {
+            "http": lambda _n, d=delay: d,
+            "fragment": lambda _n, d=delay: d,
+        }
+    if o.concurrent_fragments is not None and o.concurrent_fragments > 0:
+        opts["concurrent_fragment_downloads"] = o.concurrent_fragments
+    if not o.resume:
+        opts["continuedl"] = False
+    sections = parse_download_sections(o.download_sections)
+    if sections is not None:
+        opts["download_ranges"] = sections
+    max_size = parse_bytes(o.max_filesize)
+    if max_size:
+        opts["max_filesize"] = max_size
+    min_size = parse_bytes(o.min_filesize)
+    if min_size:
+        opts["min_filesize"] = min_size
 
     # ---- playlist ----
     wants_playlist = (

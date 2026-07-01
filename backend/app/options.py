@@ -60,6 +60,17 @@ class DownloadOptions(BaseModel):
     write_comments: bool = False  # fetch comments (stored in .info.json)
     preserve_mtime: bool = True  # set file mtime to the upload date
 
+    # ---- download control ----
+    rate_limit: str | None = None  # max speed, e.g. "2M", "500K" (bytes/s)
+    retries: int | None = None  # retries per download
+    fragment_retries: int | None = None  # retries per fragment
+    retry_delay: int | None = None  # seconds to sleep between retries
+    concurrent_fragments: int | None = None  # parallel fragment downloads (N)
+    resume: bool = True  # resume partial downloads (continuedl)
+    download_sections: str | None = None  # e.g. "*10:00-15:00" or a chapter regex
+    max_filesize: str | None = None  # skip files larger than this, e.g. "500M"
+    min_filesize: str | None = None  # skip files smaller than this, e.g. "1M"
+
     # ---- playlist ----
     playlist: bool = False  # download the whole playlist (not just one video)
     playlist_items: str | None = None  # range/selection, e.g. "1-10,15,20:30"

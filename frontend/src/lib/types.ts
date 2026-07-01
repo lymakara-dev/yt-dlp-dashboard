@@ -80,6 +80,17 @@ export interface DownloadOptions {
   skip_unavailable?: boolean;
   lazy_playlist?: boolean;
   ignore_duplicates?: boolean;
+
+  // Download control
+  rate_limit?: string | null;
+  retries?: number | null;
+  fragment_retries?: number | null;
+  retry_delay?: number | null;
+  concurrent_fragments?: number | null;
+  resume?: boolean;
+  download_sections?: string | null;
+  max_filesize?: string | null;
+  min_filesize?: string | null;
 }
 
 export interface DownloadRequest {
