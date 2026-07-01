@@ -46,6 +46,18 @@ class DownloadOptions(BaseModel):
     write_all_thumbnails: bool = False  # save every available thumbnail
     convert_thumbnail: str | None = None  # convert to jpg | png | webp
 
+    # ---- filtering (match_filter / daterange, evaluated before download) ----
+    date_after: str | None = None  # YYYYMMDD or "today-1week"
+    date_before: str | None = None
+    min_duration: int | None = None  # seconds
+    max_duration: int | None = None
+    min_views: int | None = None
+    max_views: int | None = None
+    min_likes: int | None = None
+    title_regex: str | None = None  # case-insensitive title match
+    description_regex: str | None = None
+    match_filter: str | None = None  # raw yt-dlp match-filter expression
+
     # ---- post-processing ----
     merge_output_format: str | None = None  # container for merged A/V (default mp4)
     remux_to: str | None = None  # remux into a container without re-encoding

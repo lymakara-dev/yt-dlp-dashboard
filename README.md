@@ -62,6 +62,9 @@
 - Playlist URLs are detected and reported (item count) so you know what you're pointing at.
 - **Playlist downloads:** grab the whole playlist, a range/selection (`1-10,15,20:30`), reverse or random order, skip unavailable entries, stream lazily, and ignore duplicates via a download archive. Configure via **Advanced options → Playlist**. (A playlist runs as a single job producing multiple files on disk.)
 
+**Filtering (before download)**
+- Skip videos that don't match: upload date range, min/max duration, min/max views, min likes, title/description regex, and a raw match-filter escape hatch (`height <= 1080 & ext = mp4`). Especially useful with playlists and search. File-size filtering lives under **Download control**. Configure via **Advanced options → Filtering**.
+
 **Post-processing**
 - Choose the merge container, remux (no re-encode) or re-encode to another container, split into per-chapter files, and pass custom ffmpeg args. **SponsorBlock:** pick which categories (sponsor, self-promo, intro, outro, filler, …) to *remove* or *mark* as chapters. Trim by timestamps via **Download control → Download sections**. Configure via **Advanced options → Post-processing**.
 

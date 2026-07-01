@@ -48,7 +48,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [ ] ytsearch / ytsearchN / playlist search + frontend search page
 
 ## Phase 11 — Filtering
-- [ ] Filter before download: date, duration, views, likes, title/description regex, size, resolution, ext
+- [x] Filter before download: date, duration, views, likes, title/description regex, size, resolution, ext
 
 ## Phase 12 — Post processing
 - [x] Merge, remux, convert, split chapters, SponsorBlock (mark/remove), trim, crop, re-encode, ffmpeg opts

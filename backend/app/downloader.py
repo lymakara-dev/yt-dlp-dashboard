@@ -225,6 +225,28 @@ def _select_format(o: DownloadOptions) -> str:
     return QUALITY_PRESETS.get(o.quality_preset or "best", QUALITY_PRESETS["best"])
 
 
+def build_match_filters(o: DownloadOptions) -> list[str]:
+    """Assemble a list of yt-dlp match-filter expressions (AND semantics)."""
+    filters: list[str] = []
+    if o.min_duration is not None:
+        filters.append(f"duration >= {o.min_duration}")
+    if o.max_duration is not None:
+        filters.append(f"duration <= {o.max_duration}")
+    if o.min_views is not None:
+        filters.append(f"view_count >= {o.min_views}")
+    if o.max_views is not None:
+        filters.append(f"view_count <= {o.max_views}")
+    if o.min_likes is not None:
+        filters.append(f"like_count >= {o.min_likes}")
+    if o.title_regex:
+        filters.append(f"title ~= (?i){o.title_regex}")
+    if o.description_regex:
+        filters.append(f"description ~= (?i){o.description_regex}")
+    if o.match_filter:
+        filters.append(o.match_filter)
+    return filters
+
+
 def build_ydl_opts(
     o: DownloadOptions,
     *,
@@ -403,6 +425,17 @@ def build_ydl_opts(
         opts["source_address"] = "0.0.0.0"
     elif o.force_ip == "ipv6":
         opts["source_address"] = "::"
+
+    # ---- filtering ----
+    match_filters = build_match_filters(o)
+    if match_filters:
+        from yt_dlp.utils import match_filter_func
+
+        opts["match_filter"] = match_filter_func(match_filters)
+    if o.date_after or o.date_before:
+        from yt_dlp.utils import DateRange
+
+        opts["daterange"] = DateRange(o.date_after or None, o.date_before or None)
 
     # ---- playlist ----
     wants_playlist = (

@@ -3,7 +3,12 @@ from __future__ import annotations
 
 import pytest
 
-from app.downloader import build_ydl_opts, parse_bytes, parse_download_sections
+from app.downloader import (
+    build_match_filters,
+    build_ydl_opts,
+    parse_bytes,
+    parse_download_sections,
+)
 from app.options import DownloadOptions, merge_legacy, redact
 
 
@@ -370,6 +375,40 @@ def test_output_template_override_and_archive():
 def test_output_template_falls_back_to_param():
     opts = _build(DownloadOptions())
     assert opts["outtmpl"]["default"] == "%(title)s.%(ext)s"
+
+
+def test_build_match_filters():
+    filters = build_match_filters(
+        DownloadOptions(
+            min_duration=60,
+            max_duration=600,
+            min_views=1000,
+            max_views=1_000_000,
+            min_likes=50,
+            title_regex="cats",
+            description_regex="funny",
+            match_filter="height <= 1080",
+        )
+    )
+    assert "duration >= 60" in filters
+    assert "duration <= 600" in filters
+    assert "view_count >= 1000" in filters
+    assert "view_count <= 1000000" in filters
+    assert "like_count >= 50" in filters
+    assert "title ~= (?i)cats" in filters
+    assert "description ~= (?i)funny" in filters
+    assert "height <= 1080" in filters
+
+
+def test_filter_and_daterange_wired():
+    opts = _build(
+        DownloadOptions(min_duration=30, date_after="20200101", date_before="20201231")
+    )
+    assert callable(opts["match_filter"])
+    assert opts["daterange"] is not None
+    # no filters -> keys absent
+    assert "match_filter" not in _build(DownloadOptions())
+    assert "daterange" not in _build(DownloadOptions())
 
 
 def test_merge_legacy_blob_wins_over_columns():

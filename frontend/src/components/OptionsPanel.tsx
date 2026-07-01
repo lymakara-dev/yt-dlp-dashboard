@@ -391,6 +391,90 @@ export function OptionsPanel({
         />
       </Section>
 
+      <Section title="Filtering" summary={filterSummary(value)}>
+        <p className="text-xs text-muted-foreground">
+          Skip videos that don’t match — evaluated before download. Great for playlists & search.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Uploaded after" hint="YYYYMMDD or today-1week">
+            <Input
+              value={value.date_after ?? ""}
+              onChange={(e) => set("date_after", e.target.value || null)}
+              placeholder="20200101"
+            />
+          </Field>
+          <Field label="Uploaded before" hint="YYYYMMDD">
+            <Input
+              value={value.date_before ?? ""}
+              onChange={(e) => set("date_before", e.target.value || null)}
+              placeholder="20231231"
+            />
+          </Field>
+          <Field label="Min duration (s)">
+            <Input
+              type="number"
+              min={0}
+              value={value.min_duration ?? ""}
+              onChange={(e) => set("min_duration", numOrNull(e.target.value))}
+            />
+          </Field>
+          <Field label="Max duration (s)">
+            <Input
+              type="number"
+              min={0}
+              value={value.max_duration ?? ""}
+              onChange={(e) => set("max_duration", numOrNull(e.target.value))}
+            />
+          </Field>
+          <Field label="Min views">
+            <Input
+              type="number"
+              min={0}
+              value={value.min_views ?? ""}
+              onChange={(e) => set("min_views", numOrNull(e.target.value))}
+            />
+          </Field>
+          <Field label="Max views">
+            <Input
+              type="number"
+              min={0}
+              value={value.max_views ?? ""}
+              onChange={(e) => set("max_views", numOrNull(e.target.value))}
+            />
+          </Field>
+          <Field label="Min likes">
+            <Input
+              type="number"
+              min={0}
+              value={value.min_likes ?? ""}
+              onChange={(e) => set("min_likes", numOrNull(e.target.value))}
+            />
+          </Field>
+        </div>
+        <Field label="Title matches" hint="Case-insensitive regex">
+          <Input
+            value={value.title_regex ?? ""}
+            onChange={(e) => set("title_regex", e.target.value || null)}
+            placeholder="e.g. (tutorial|guide)"
+            className="font-mono text-sm"
+          />
+        </Field>
+        <Field label="Description matches" hint="Case-insensitive regex">
+          <Input
+            value={value.description_regex ?? ""}
+            onChange={(e) => set("description_regex", e.target.value || null)}
+            className="font-mono text-sm"
+          />
+        </Field>
+        <Field label="Raw match-filter" hint="e.g. height <= 1080 & ext = mp4">
+          <Input
+            value={value.match_filter ?? ""}
+            onChange={(e) => set("match_filter", e.target.value || null)}
+            className="font-mono text-sm"
+          />
+        </Field>
+      </Section>
+
       <Section title="Post-processing" summary={postSummary(value)}>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Merge into" hint="Container for A/V merge">
@@ -629,6 +713,16 @@ function playlistSummary(o: DownloadOptions): string | null {
   else if (o.playlist) parts.push("all");
   if (o.playlist_reverse) parts.push("reverse");
   if (o.playlist_random) parts.push("random");
+  return parts.length ? parts.join(" · ") : null;
+}
+
+function filterSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.date_after || o.date_before) parts.push("date");
+  if (o.min_duration != null || o.max_duration != null) parts.push("duration");
+  if (o.min_views != null || o.max_views != null) parts.push("views");
+  if (o.title_regex) parts.push("title");
+  if (o.match_filter) parts.push("custom");
   return parts.length ? parts.join(" · ") : null;
 }
 

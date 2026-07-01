@@ -65,6 +65,18 @@ export interface DownloadOptions {
   write_comments?: boolean;
   preserve_mtime?: boolean;
 
+  // Filtering
+  date_after?: string | null;
+  date_before?: string | null;
+  min_duration?: number | null;
+  max_duration?: number | null;
+  min_views?: number | null;
+  max_views?: number | null;
+  min_likes?: number | null;
+  title_regex?: string | null;
+  description_regex?: string | null;
+  match_filter?: string | null;
+
   // Post-processing
   merge_output_format?: string | null;
   remux_to?: string | null;
