@@ -92,6 +92,10 @@ export interface DownloadOptions {
   max_filesize?: string | null;
   min_filesize?: string | null;
 
+  // Cookies
+  cookies_from_browser?: string | null;
+  cookies_file?: string | null;
+
   // Network
   proxy?: string | null;
   source_address?: string | null;

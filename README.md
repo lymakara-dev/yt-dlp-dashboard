@@ -77,6 +77,9 @@
 **Network**
 - HTTP/SOCKS proxy, custom User-Agent, Referer, arbitrary request headers, geo-bypass (with optional country), IPv4/IPv6 forcing, and local bind address. Configure via **Advanced options → Network**.
 
+**Cookies**
+- Import cookies straight from a local browser profile (Chrome, Chromium, Edge, Firefox, Brave, Opera, Vivaldi, Safari) or point at a Netscape `cookies.txt` file. Configure via **Advanced options → Cookies**.
+
 **Real-time progress**
 - Live per-job progress over WebSocket: percent, speed, ETA and byte counts, with a smooth gradient progress bar.
 

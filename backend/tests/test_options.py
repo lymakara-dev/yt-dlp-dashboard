@@ -293,6 +293,14 @@ def test_geo_bypass_default_not_emitted():
     assert "geo_bypass" not in _build(DownloadOptions())
 
 
+def test_cookies_from_browser_and_file():
+    opts = _build(
+        DownloadOptions(cookies_from_browser="firefox", cookies_file="/tmp/cookies.txt")
+    )
+    assert opts["cookiesfrombrowser"] == ("firefox", None, None, None)
+    assert opts["cookiefile"] == "/tmp/cookies.txt"
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",

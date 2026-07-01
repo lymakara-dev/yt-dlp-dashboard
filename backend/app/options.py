@@ -71,6 +71,10 @@ class DownloadOptions(BaseModel):
     max_filesize: str | None = None  # skip files larger than this, e.g. "500M"
     min_filesize: str | None = None  # skip files smaller than this, e.g. "1M"
 
+    # ---- cookies ----
+    cookies_from_browser: str | None = None  # chrome|chromium|edge|firefox|brave|opera|vivaldi|safari
+    cookies_file: str | None = None  # path to a Netscape cookies.txt
+
     # ---- network ----
     proxy: str | None = None  # http://host:port or socks5://host:port
     source_address: str | None = None  # bind to a local interface/IP

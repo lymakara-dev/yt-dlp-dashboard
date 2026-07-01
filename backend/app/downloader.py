@@ -342,6 +342,13 @@ def build_ydl_opts(
     if min_size:
         opts["min_filesize"] = min_size
 
+    # ---- cookies ----
+    if o.cookies_from_browser:
+        # (browser, profile, keyring, container) — only the browser is required.
+        opts["cookiesfrombrowser"] = (o.cookies_from_browser, None, None, None)
+    if o.cookies_file:
+        opts["cookiefile"] = o.cookies_file
+
     # ---- network ----
     if o.proxy:
         opts["proxy"] = o.proxy

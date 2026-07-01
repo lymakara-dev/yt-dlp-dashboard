@@ -33,7 +33,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [ ] Output templates, folder templates, auto numbering, archive file, prevent duplicates
 
 ## Phase 6 — Browser cookies
-- [ ] Import cookies from Chrome/Chromium/Edge/Firefox/Brave/Opera/Vivaldi/Safari + UI selector
+- [x] Import cookies from Chrome/Chromium/Edge/Firefox/Brave/Opera/Vivaldi/Safari + UI selector
 
 ## Phase 7 — Authentication
 - [ ] Username/password, cookies, OAuth (netrc), age-restricted, membership content

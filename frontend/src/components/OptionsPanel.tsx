@@ -331,6 +331,44 @@ export function OptionsPanel({
         />
       </Section>
 
+      <Section title="Cookies" summary={value.cookies_from_browser ?? (value.cookies_file ? "file" : null)}>
+        <Field label="Import from browser" hint="Read cookies from a local browser profile">
+          <Select
+            value={value.cookies_from_browser ?? "none"}
+            onValueChange={(v) => set("cookies_from_browser", v === "none" ? null : v)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {[
+                "chrome",
+                "chromium",
+                "edge",
+                "firefox",
+                "brave",
+                "opera",
+                "vivaldi",
+                "safari",
+              ].map((b) => (
+                <SelectItem key={b} value={b}>
+                  {b[0].toUpperCase() + b.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Cookies file" hint="Path to a Netscape cookies.txt on the server">
+          <Input
+            value={value.cookies_file ?? ""}
+            onChange={(e) => set("cookies_file", e.target.value || null)}
+            placeholder="/path/to/cookies.txt"
+            className="font-mono text-sm"
+          />
+        </Field>
+      </Section>
+
       <Section title="Network" summary={networkSummary(value)}>
         <Field label="Proxy" hint="http://host:port or socks5://host:port">
           <Input
