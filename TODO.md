@@ -51,7 +51,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [ ] Filter before download: date, duration, views, likes, title/description regex, size, resolution, ext
 
 ## Phase 12 — Post processing
-- [ ] Merge, remux, convert, split chapters, SponsorBlock (mark/remove), trim, crop, re-encode, ffmpeg opts
+- [x] Merge, remux, convert, split chapters, SponsorBlock (mark/remove), trim, crop, re-encode, ffmpeg opts
 
 ## Phase 13 — Automation
 - [ ] Batch URL import, text file import, watch folder, download archive, scheduled downloads

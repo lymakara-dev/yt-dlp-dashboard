@@ -19,6 +19,18 @@ import type { DownloadOptions } from "@/lib/types";
  * is a controlled editor over a partial DownloadOptions object; SubmitView owns
  * the state and forwards it to the API as `options`.
  */
+const CONTAINERS = ["mp4", "mkv", "webm", "mov", "avi", "flv"];
+const SPONSORBLOCK_CATEGORIES = [
+  "sponsor",
+  "selfpromo",
+  "interaction",
+  "intro",
+  "outro",
+  "preview",
+  "music_offtopic",
+  "filler",
+];
+
 // Common yt-dlp output-template tokens surfaced as quick-insert chips.
 const TEMPLATE_TOKENS = [
   "%(title)s",
@@ -379,6 +391,52 @@ export function OptionsPanel({
         />
       </Section>
 
+      <Section title="Post-processing" summary={postSummary(value)}>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field label="Merge into" hint="Container for A/V merge">
+            <ContainerSelect
+              value={value.merge_output_format}
+              onChange={(v) => set("merge_output_format", v)}
+              defaultLabel="mp4"
+            />
+          </Field>
+          <Field label="Remux to" hint="No re-encode">
+            <ContainerSelect
+              value={value.remux_to}
+              onChange={(v) => set("remux_to", v)}
+              defaultLabel="off"
+            />
+          </Field>
+          <Field label="Re-encode to" hint="Slower, re-encodes">
+            <ContainerSelect
+              value={value.recode_to}
+              onChange={(v) => set("recode_to", v)}
+              defaultLabel="off"
+            />
+          </Field>
+        </div>
+        <OptToggle
+          label="Split by chapters"
+          hint="Write one file per chapter"
+          checked={!!value.split_chapters}
+          onChange={(v) => set("split_chapters", v)}
+        />
+        <Field label="SponsorBlock — remove segments">
+          <ChipMultiSelect
+            options={SPONSORBLOCK_CATEGORIES}
+            selected={value.sponsorblock_remove ?? []}
+            onChange={(v) => set("sponsorblock_remove", v)}
+          />
+        </Field>
+        <Field label="SponsorBlock — mark as chapters">
+          <ChipMultiSelect
+            options={SPONSORBLOCK_CATEGORIES}
+            selected={value.sponsorblock_mark ?? []}
+            onChange={(v) => set("sponsorblock_mark", v)}
+          />
+        </Field>
+      </Section>
+
       <Section title="Cookies" summary={value.cookies_from_browser ?? (value.cookies_file ? "file" : null)}>
         <Field label="Import from browser" hint="Read cookies from a local browser profile">
           <Select
@@ -574,6 +632,16 @@ function playlistSummary(o: DownloadOptions): string | null {
   return parts.length ? parts.join(" · ") : null;
 }
 
+function postSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.remux_to) parts.push(`remux ${o.remux_to}`);
+  if (o.recode_to) parts.push(`recode ${o.recode_to}`);
+  if (o.split_chapters) parts.push("split");
+  const sb = (o.sponsorblock_remove?.length ?? 0) + (o.sponsorblock_mark?.length ?? 0);
+  if (sb) parts.push("SponsorBlock");
+  return parts.length ? parts.join(" · ") : null;
+}
+
 function audioSummary(o: DownloadOptions): string | null {
   const parts: string[] = [];
   if (o.keep_audio_codec) parts.push("copy");
@@ -662,6 +730,67 @@ export function OptToggle({
       </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </label>
+  );
+}
+
+function ContainerSelect({
+  value,
+  onChange,
+  defaultLabel,
+}: {
+  value?: string | null;
+  onChange: (v: string | null) => void;
+  defaultLabel: string;
+}) {
+  return (
+    <Select value={value ?? "none"} onValueChange={(v) => onChange(v === "none" ? null : v)}>
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="none">{defaultLabel}</SelectItem>
+        {CONTAINERS.map((c) => (
+          <SelectItem key={c} value={c}>
+            {c}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function ChipMultiSelect({
+  options,
+  selected,
+  onChange,
+}: {
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const toggle = (opt: string) =>
+    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt]);
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((opt) => {
+        const active = selected.includes(opt);
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => toggle(opt)}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-xs transition-colors",
+              active
+                ? "border-primary bg-primary/10 text-foreground"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+            )}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

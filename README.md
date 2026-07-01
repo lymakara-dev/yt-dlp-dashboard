@@ -62,6 +62,9 @@
 - Playlist URLs are detected and reported (item count) so you know what you're pointing at.
 - **Playlist downloads:** grab the whole playlist, a range/selection (`1-10,15,20:30`), reverse or random order, skip unavailable entries, stream lazily, and ignore duplicates via a download archive. Configure via **Advanced options → Playlist**. (A playlist runs as a single job producing multiple files on disk.)
 
+**Post-processing**
+- Choose the merge container, remux (no re-encode) or re-encode to another container, split into per-chapter files, and pass custom ffmpeg args. **SponsorBlock:** pick which categories (sponsor, self-promo, intro, outro, filler, …) to *remove* or *mark* as chapters. Trim by timestamps via **Download control → Download sections**. Configure via **Advanced options → Post-processing**.
+
 **Subtitles, thumbnails &amp; SponsorBlock**
 - Toggle subtitle embedding, thumbnail embedding, and SponsorBlock sponsor-segment removal per download.
 - **Subtitles (advanced):** download uploader subtitles and/or auto-generated captions, choose one or more languages (`en, es, en.*`), embed into the video or keep as separate files, and convert to `srt`/`ass`/`vtt`/`lrc`. Configure via the **Advanced options → Subtitles** panel on the download screen.

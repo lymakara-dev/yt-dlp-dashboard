@@ -259,7 +259,6 @@ def build_ydl_opts(
         "noplaylist": True,
         "noprogress": True,
         "ignoreerrors": False,
-        "merge_output_format": "mp4",
         "windowsfilenames": False,
         "restrictfilenames": False,
     }
@@ -308,10 +307,25 @@ def build_ydl_opts(
             meta_pp["add_chapters"] = True
         postprocessors.append(meta_pp)
 
-    if o.sponsorblock:
-        postprocessors.append({"key": "SponsorBlock", "categories": ["sponsor"]})
+    # ---- post-processing: remux / recode / split / SponsorBlock ----
+    opts["merge_output_format"] = o.merge_output_format or "mp4"
+    if o.remux_to:
+        postprocessors.append({"key": "FFmpegVideoRemuxer", "preferedformat": o.remux_to})
+    if o.recode_to:
+        postprocessors.append({"key": "FFmpegVideoConvertor", "preferedformat": o.recode_to})
+    if o.split_chapters:
+        postprocessors.append({"key": "FFmpegSplitChapters", "force_keyframes": False})
+
+    # Legacy `sponsorblock` toggle == remove the "sponsor" category.
+    sb_remove = list(o.sponsorblock_remove) or (["sponsor"] if o.sponsorblock else [])
+    sb_all = sorted(set(o.sponsorblock_mark) | set(sb_remove))
+    if sb_all:
         postprocessors.append(
-            {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]}
+            {"key": "SponsorBlock", "categories": sb_all, "when": "after_filter"}
+        )
+    if sb_remove:
+        postprocessors.append(
+            {"key": "ModifyChapters", "remove_sponsor_segments": sb_remove}
         )
 
     # ---- download control ----

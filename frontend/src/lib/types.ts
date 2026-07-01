@@ -65,6 +65,14 @@ export interface DownloadOptions {
   write_comments?: boolean;
   preserve_mtime?: boolean;
 
+  // Post-processing
+  merge_output_format?: string | null;
+  remux_to?: string | null;
+  recode_to?: string | null;
+  split_chapters?: boolean;
+  sponsorblock_mark?: string[];
+  sponsorblock_remove?: string[];
+
   // File organization
   output_template?: string | null;
   use_archive?: boolean;

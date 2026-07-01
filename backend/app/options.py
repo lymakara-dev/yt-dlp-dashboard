@@ -46,6 +46,14 @@ class DownloadOptions(BaseModel):
     write_all_thumbnails: bool = False  # save every available thumbnail
     convert_thumbnail: str | None = None  # convert to jpg | png | webp
 
+    # ---- post-processing ----
+    merge_output_format: str | None = None  # container for merged A/V (default mp4)
+    remux_to: str | None = None  # remux into a container without re-encoding
+    recode_to: str | None = None  # re-encode video into this container/codec
+    split_chapters: bool = False  # split the file into one file per chapter
+    sponsorblock_mark: list[str] = Field(default_factory=list)  # SB categories to mark
+    sponsorblock_remove: list[str] = Field(default_factory=list)  # SB categories to cut
+
     # ---- file organization ----
     output_template: str | None = None  # per-download output/folder template override
     use_archive: bool = False  # record downloads in an archive to prevent duplicates

@@ -81,6 +81,39 @@ def test_subtitles_and_thumbnail_and_sponsorblock():
     assert "ModifyChapters" in keys
 
 
+def test_default_merge_output_format_is_mp4():
+    assert _build(DownloadOptions())["merge_output_format"] == "mp4"
+
+
+def test_remux_recode_split_and_merge_format():
+    opts = _build(
+        DownloadOptions(
+            merge_output_format="mkv",
+            remux_to="mkv",
+            recode_to="webm",
+            split_chapters=True,
+        )
+    )
+    assert opts["merge_output_format"] == "mkv"
+    keys = _pp_keys(opts)
+    assert "FFmpegVideoRemuxer" in keys
+    assert "FFmpegVideoConvertor" in keys
+    assert "FFmpegSplitChapters" in keys
+
+
+def test_sponsorblock_mark_and_remove_categories():
+    opts = _build(
+        DownloadOptions(
+            sponsorblock_mark=["intro", "outro"],
+            sponsorblock_remove=["sponsor", "selfpromo"],
+        )
+    )
+    sb = [p for p in opts["postprocessors"] if p["key"] == "SponsorBlock"][0]
+    assert set(sb["categories"]) == {"intro", "outro", "sponsor", "selfpromo"}
+    mc = [p for p in opts["postprocessors"] if p["key"] == "ModifyChapters"][0]
+    assert mc["remove_sponsor_segments"] == ["sponsor", "selfpromo"]
+
+
 def test_granular_subtitles_langs_and_convert():
     opts = _build(
         DownloadOptions(
