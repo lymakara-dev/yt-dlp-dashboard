@@ -41,6 +41,11 @@ class DownloadOptions(BaseModel):
     embed_subs: bool = False  # mux subtitles into the video container
     convert_subs: str | None = None  # convert to srt | ass | vtt | lrc
 
+    # ---- thumbnails (granular) ----
+    write_thumbnail: bool = False  # save the thumbnail as a separate file
+    write_all_thumbnails: bool = False  # save every available thumbnail
+    convert_thumbnail: str | None = None  # convert to jpg | png | webp
+
     model_config = {"extra": "ignore"}
 
 

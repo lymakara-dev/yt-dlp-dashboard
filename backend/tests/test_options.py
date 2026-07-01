@@ -90,6 +90,26 @@ def test_audio_only_never_embeds_subs():
     assert "FFmpegEmbedSubtitle" not in _pp_keys(opts)
 
 
+def test_thumbnail_write_all_and_convert_and_embed():
+    opts = _build(
+        DownloadOptions(
+            write_all_thumbnails=True, convert_thumbnail="png", embed_thumbnail=True
+        )
+    )
+    assert opts["writethumbnail"] is True
+    assert opts["write_all_thumbnails"] is True
+    keys = _pp_keys(opts)
+    # Convertor must precede EmbedThumbnail so the embedded art is converted.
+    assert keys.index("FFmpegThumbnailsConvertor") < keys.index("EmbedThumbnail")
+
+
+def test_write_thumbnail_only():
+    opts = _build(DownloadOptions(write_thumbnail=True))
+    assert opts["writethumbnail"] is True
+    assert "write_all_thumbnails" not in opts
+    assert "EmbedThumbnail" not in _pp_keys(opts)
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",

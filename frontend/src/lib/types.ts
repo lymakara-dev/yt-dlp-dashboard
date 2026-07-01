@@ -52,6 +52,11 @@ export interface DownloadOptions {
   sub_langs?: string[];
   embed_subs?: boolean;
   convert_subs?: string | null;
+
+  // Thumbnails
+  write_thumbnail?: boolean;
+  write_all_thumbnails?: boolean;
+  convert_thumbnail?: string | null;
 }
 
 export interface DownloadRequest {

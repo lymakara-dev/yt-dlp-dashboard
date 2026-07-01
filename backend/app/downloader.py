@@ -216,8 +216,18 @@ def build_ydl_opts(
                 {"key": "FFmpegSubtitlesConvertor", "format": o.convert_subs}
             )
 
-    if o.embed_thumbnail:
+    # ---- thumbnails ----
+    if o.write_thumbnail or o.embed_thumbnail or o.convert_thumbnail:
         opts["writethumbnail"] = True
+    if o.write_all_thumbnails:
+        opts["writethumbnail"] = True
+        opts["write_all_thumbnails"] = True
+    if o.convert_thumbnail:
+        # Runs before EmbedThumbnail so the embedded art is the converted one.
+        postprocessors.append(
+            {"key": "FFmpegThumbnailsConvertor", "format": o.convert_thumbnail}
+        )
+    if o.embed_thumbnail:
         postprocessors.append({"key": "EmbedThumbnail"})
 
     if o.sponsorblock:

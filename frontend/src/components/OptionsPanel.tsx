@@ -84,8 +84,50 @@ export function OptionsPanel({
           </Field>
         </div>
       </Section>
+
+      <Section title="Thumbnails" summary={thumbnailSummary(value)}>
+        <OptToggle
+          label="Save thumbnail"
+          hint="Write the cover image as a separate file"
+          checked={!!value.write_thumbnail}
+          onChange={(v) => set("write_thumbnail", v)}
+        />
+        <OptToggle
+          label="Save all thumbnails"
+          hint="Write every available thumbnail size"
+          checked={!!value.write_all_thumbnails}
+          onChange={(v) => set("write_all_thumbnails", v)}
+        />
+        <Field label="Convert format" hint="Re-encode saved thumbnails (needs ffmpeg)">
+          <Select
+            value={value.convert_thumbnail ?? "none"}
+            onValueChange={(v) => set("convert_thumbnail", v === "none" ? null : v)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Keep original</SelectItem>
+              <SelectItem value="jpg">jpg</SelectItem>
+              <SelectItem value="png">png</SelectItem>
+              <SelectItem value="webp">webp</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        <p className="text-xs text-muted-foreground">
+          Embed the thumbnail into the media file using the “Embed thumbnail” toggle above.
+        </p>
+      </Section>
     </div>
   );
+}
+
+function thumbnailSummary(o: DownloadOptions): string | null {
+  const parts: string[] = [];
+  if (o.write_all_thumbnails) parts.push("all");
+  else if (o.write_thumbnail) parts.push("save");
+  if (o.convert_thumbnail) parts.push(o.convert_thumbnail);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 function subtitleSummary(o: DownloadOptions): string | null {
