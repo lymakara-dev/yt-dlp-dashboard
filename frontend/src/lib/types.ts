@@ -89,6 +89,10 @@ export interface DownloadOptions {
   output_template?: string | null;
   use_archive?: boolean;
 
+  // Developer
+  external_downloader?: string | null;
+  external_downloader_args?: string | null;
+
   // Audio extraction
   audio_format?: string | null;
   audio_quality?: string | null;

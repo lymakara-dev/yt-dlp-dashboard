@@ -521,6 +521,30 @@ export function OptionsPanel({
         </Field>
       </Section>
 
+      <Section
+        title="Developer"
+        summary={value.external_downloader ?? null}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="External downloader" hint="e.g. aria2c (must be installed)">
+            <Input
+              value={value.external_downloader ?? ""}
+              onChange={(e) => set("external_downloader", e.target.value || null)}
+              placeholder="native"
+              className="font-mono text-sm"
+            />
+          </Field>
+          <Field label="Downloader args" hint="e.g. -x 16 -k 1M">
+            <Input
+              value={value.external_downloader_args ?? ""}
+              onChange={(e) => set("external_downloader_args", e.target.value || null)}
+              placeholder="none"
+              className="font-mono text-sm"
+            />
+          </Field>
+        </div>
+      </Section>
+
       <Section title="Cookies" summary={value.cookies_from_browser ?? (value.cookies_file ? "file" : null)}>
         <Field label="Import from browser" hint="Read cookies from a local browser profile">
           <Select

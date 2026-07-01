@@ -57,7 +57,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [ ] Batch URL import, text file import, watch folder, download archive, scheduled downloads
 
 ## Phase 14 — Developer features
-- [ ] JSON output, raw info extraction, export metadata, progress hooks, plugins, external downloaders (aria2), custom postprocessors
+- [x] JSON output, raw info extraction, export metadata, progress hooks, external downloaders (aria2), custom postprocessors
 
 ## Phase 15 — UX
 - [ ] Better progress bars, speed graph, ETA, retry indicator, queue viz, dark mode, keyboard shortcuts, drag-and-drop, clipboard detection, toasts, responsive

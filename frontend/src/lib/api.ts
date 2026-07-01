@@ -52,6 +52,12 @@ export const api = {
       body: JSON.stringify({ url }),
     }),
 
+  probeRaw: (url: string) =>
+    request<Record<string, unknown>>("/api/probe/raw", {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    }),
+
   createDownload: (req: DownloadRequest) =>
     request<{ id: number }>("/api/downloads", {
       method: "POST",

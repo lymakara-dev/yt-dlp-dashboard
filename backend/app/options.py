@@ -70,6 +70,10 @@ class DownloadOptions(BaseModel):
     output_template: str | None = None  # per-download output/folder template override
     use_archive: bool = False  # record downloads in an archive to prevent duplicates
 
+    # ---- developer / advanced ----
+    external_downloader: str | None = None  # e.g. aria2c, native, ffmpeg
+    external_downloader_args: str | None = None  # raw args for the external downloader
+
     # ---- audio extraction ----
     audio_format: str | None = None  # mp3|aac|opus|flac|wav|vorbis|m4a (with audio_only)
     audio_quality: str | None = None  # 0 (best) .. 10, or a kbps value like "192"

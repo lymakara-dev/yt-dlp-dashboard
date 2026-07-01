@@ -124,6 +124,28 @@ def probe(url: str) -> ProbeResponse:
     )
 
 
+def probe_raw(url: str) -> dict[str, Any]:
+    """Return the full sanitized yt-dlp info dict for a URL (developer view)."""
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "noplaylist": False,
+        "extract_flat": "in_playlist",
+    }
+    try:
+        with YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            info = ydl.sanitize_info(info)
+    except (DownloadError, ExtractorError) as exc:
+        raise ProbeError(_clean_message(str(exc))) from exc
+    except Exception as exc:
+        raise ProbeError(f"Could not read this URL: {exc}") from exc
+    if info is None:
+        raise ProbeError("No information could be extracted from this URL.")
+    return info
+
+
 def _clean_message(msg: str) -> str:
     """Strip yt-dlp's ANSI / ERROR: prefixes for a friendlier UI message."""
     msg = msg.replace("\x1b[0;31m", "").replace("\x1b[0m", "")
@@ -459,6 +481,13 @@ def build_ydl_opts(
         opts["ignoreerrors"] = True
     if o.ignore_duplicates or o.use_archive:
         opts["download_archive"] = os.path.join(download_dir, "archive.txt")
+
+    # ---- external downloader (aria2c etc.) ----
+    if o.external_downloader:
+        opts["external_downloader"] = {"default": o.external_downloader}
+    if o.external_downloader_args:
+        key = o.external_downloader or "default"
+        opts["external_downloader_args"] = {key: shlex.split(o.external_downloader_args)}
 
     # ---- ffmpeg / normalization postprocessor args ----
     ppa: dict[str, list[str]] = {}

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, Download, Loader2, Search } from "lucide-react";
+import { AlertCircle, Braces, Download, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MetadataCard } from "@/components/MetadataCard";
@@ -38,8 +38,16 @@ export function SubmitView() {
       setSelection({ mode: "preset", preset: "best" });
       // Default playlist URLs to downloading the whole list (user can change it).
       setOptions(data.is_playlist ? { playlist: true } : {});
+      setRawJson(null);
     },
     onError: (e: ApiError) => toast.error("Could not read URL", { description: e.message }),
+  });
+
+  const [rawJson, setRawJson] = useState<string | null>(null);
+  const rawProbe = useMutation({
+    mutationFn: (u: string) => api.probeRaw(u),
+    onSuccess: (data) => setRawJson(JSON.stringify(data, null, 2)),
+    onError: (e: ApiError) => toast.error("Could not extract info", { description: e.message }),
   });
 
   const create = useMutation({
@@ -114,6 +122,41 @@ export function SubmitView() {
           <div className="space-y-5 border-t pt-5">
             <MetadataCard info={info} />
 
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => (rawJson ? setRawJson(null) : rawProbe.mutate(info.url))}
+                  disabled={rawProbe.isPending}
+                >
+                  {rawProbe.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Braces className="h-4 w-4" />
+                  )}
+                  {rawJson ? "Hide raw JSON" : "View raw JSON"}
+                </Button>
+                {rawJson && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadText(rawJson, "info.json")}
+                  >
+                    <Download className="h-4 w-4" />
+                    Export
+                  </Button>
+                )}
+              </div>
+              {rawJson && (
+                <pre className="max-h-80 overflow-auto rounded-md border bg-muted/40 p-3 text-xs">
+                  {rawJson}
+                </pre>
+              )}
+            </div>
+
             {info.is_playlist && (
               <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
                 This is a playlist{info.playlist_count ? ` (${info.playlist_count} items)` : ""}.
@@ -182,6 +225,16 @@ export function SubmitView() {
       </CardContent>
     </Card>
   );
+}
+
+function downloadText(text: string, filename: string) {
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function ToggleRow({

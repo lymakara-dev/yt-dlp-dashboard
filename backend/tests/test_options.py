@@ -411,6 +411,14 @@ def test_filter_and_daterange_wired():
     assert "daterange" not in _build(DownloadOptions())
 
 
+def test_external_downloader_and_args():
+    opts = _build(
+        DownloadOptions(external_downloader="aria2c", external_downloader_args="-x 16 -k 1M")
+    )
+    assert opts["external_downloader"] == {"default": "aria2c"}
+    assert opts["external_downloader_args"] == {"aria2c": ["-x", "16", "-k", "1M"]}
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",
