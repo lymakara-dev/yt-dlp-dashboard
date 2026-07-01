@@ -61,8 +61,5 @@ class ProgressBroker:
         except RuntimeError:
             pass
 
-    def clear(self, job_id: int) -> None:
-        self._last.pop(job_id, None)
-
 
 broker = ProgressBroker()

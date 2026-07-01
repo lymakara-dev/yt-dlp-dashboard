@@ -111,20 +111,25 @@ Two details worth internalizing:
 | --- | --- |
 | [main.py](../backend/app/main.py) | FastAPI app, lifespan (DB init, ffmpeg probe, start/stop job manager), CORS, router wiring, optional static SPA mount |
 | [config.py](../backend/app/config.py) | Bootstrap config from `YTDLP_*` env vars (DB URL, download dir, static dir, CORS). Runtime-mutable settings live in the DB instead |
-| [models.py](../backend/app/models.py) | SQLModel tables: `Job` (one download + its lifecycle) and the singleton `AppSettings` row; `JobStatus` enum + `TERMINAL_STATES` |
+| [models.py](../backend/app/models.py) | SQLModel tables: `Job` (one download + its lifecycle, incl. the `options` JSON blob and `scheduled_at`) and the singleton `AppSettings` row; `JobStatus` enum + `TERMINAL_STATES` |
+| [options.py](../backend/app/options.py) | **`DownloadOptions`** — the canonical set of every yt-dlp knob the UI exposes; `merge_legacy()` and `redact()` (secret masking). Persisted as `Job.options` JSON |
 | [schemas.py](../backend/app/schemas.py) | Pydantic request/response models — the **source of truth** for the hand-written TS client |
-| [db.py](../backend/app/db.py) | Engine, session helpers (`session_scope` for workers, `get_session` dependency), table creation + settings seed |
-| [downloader.py](../backend/app/downloader.py) | yt-dlp wrappers: `probe()`, `build_ydl_opts()` (option → yt-dlp translation, quality presets), `run_download()`, progress normalization |
+| [db.py](../backend/app/db.py) | Engine, session helpers, table creation + settings seed, and `_run_migrations()` (additive `ALTER TABLE ADD COLUMN` list — no migration framework) |
+| [downloader.py](../backend/app/downloader.py) | yt-dlp wrappers: `probe()`, `probe_raw()`, `search()`, `build_ydl_opts()` (translates `DownloadOptions`), `build_match_filters()`, `parse_bytes()`/`parse_download_sections()`, `run_download()` |
 | [queue.py](../backend/app/queue.py) | `JobManager`: async queue, worker pool, concurrency scaling, cancel, DB throttling, finalize |
+| [automation.py](../backend/app/automation.py) | `Watcher` background loop: promotes due `scheduled` jobs and auto-queues URLs from a watch folder's `*.txt` files |
 | [broker.py](../backend/app/broker.py) | In-process per-job pub/sub with last-message caching and thread-safe publish |
-| [routers/](../backend/app/routers/) | `probe`, `downloads`, `settings`, `files`, `ws` HTTP/WS endpoints |
+| [routers/](../backend/app/routers/) | `probe` (+`/raw`), `search`, `downloads` (+`/batch`), `settings`, `files`, `ws` HTTP/WS endpoints |
 
 ### API surface
 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | POST | `/api/probe` | Metadata + formats, no download |
-| POST | `/api/downloads` | Create a job (returns `{id}`) |
+| POST | `/api/probe/raw` | Full sanitized yt-dlp info JSON (raw extraction) |
+| POST | `/api/search` | ytsearch / ytsearchdate / scsearch results |
+| POST | `/api/downloads` | Create a job (returns `{id}`); optional `scheduled_at` + `options` |
+| POST | `/api/downloads/batch` | Queue many URLs at once (returns `{ids, count}`) |
 | GET | `/api/downloads` | Paginated history, optional `status` filter |
 | GET | `/api/downloads/{id}` | Single job |
 | POST | `/api/downloads/{id}/cancel` | Cancel an active/queued job |
@@ -136,16 +141,17 @@ Two details worth internalizing:
 
 ## Frontend map
 
-Single-page app with three views switched by local state in
-[App.tsx](../frontend/src/App.tsx): **home** (submit + active downloads), **history**, and
-**settings**.
+Single-page app with four views switched by local state in
+[App.tsx](../frontend/src/App.tsx): **home** (submit + batch import + active downloads),
+**search**, **history**, and **settings**.
 
 | Area | What's there |
 | --- | --- |
 | [lib/api.ts](../frontend/src/lib/api.ts) | Typed fetch client + `ApiError`; `wsUrl()` builder |
-| [lib/types.ts](../frontend/src/lib/types.ts) | TS mirror of the backend schemas (keep in sync with [schemas.py](../backend/app/schemas.py)) |
+| [lib/types.ts](../frontend/src/lib/types.ts) | TS mirror of the backend schemas incl. `DownloadOptions` (keep in sync with [schemas.py](../backend/app/schemas.py) / [options.py](../backend/app/options.py)) |
 | [hooks/useJobSocket.ts](../frontend/src/hooks/useJobSocket.ts) | WebSocket subscription with auto-reconnect and terminal-state callback |
-| `components/` | `SubmitView`, `MetadataCard`, `FormatPicker`, `ActiveDownloads`, `DownloadCard`, `HistoryTable`, `SettingsPage`, `Header`, `StatusBadge`, plus a `components/ui/` set of Radix-based primitives |
+| [components/OptionsPanel.tsx](../frontend/src/components/OptionsPanel.tsx) | The collapsible advanced-options editor — **one section per feature phase** (subtitles, thumbnails, metadata, audio, playlist, download control, network, cookies, auth, filtering, post-processing, developer, file organization). Add new knobs here |
+| `components/` | `SubmitView`, `SearchPage`, `BatchImport`, `MetadataCard`, `FormatPicker`, `OptionsPanel`, `ActiveDownloads`, `DownloadCard`, `SpeedGraph`, `HistoryTable`, `SettingsPage`, `Header`, `StatusBadge`, plus a `components/ui/` set of Radix-based primitives |
 
 Server state is managed with **TanStack Query**; the API client throws `ApiError` carrying
 the backend's `detail` message so UI toasts can show human-readable errors.
@@ -163,6 +169,14 @@ the backend's `detail` message so UI toasts can show human-readable errors.
   `check_same_thread=False`.
 - **Concurrency is live-adjustable**: changing `max_concurrency` in settings calls
   `manager.set_concurrency()`, which scales the worker pool without a restart.
+- **Options flow through one model**: every yt-dlp knob lives on `DownloadOptions`
+  ([options.py](../backend/app/options.py)), is stored as the `Job.options` JSON blob, and is
+  translated in `build_ydl_opts()`. Adding a feature almost never needs a DB migration.
+- **Schema changes use the additive migration list** in [db.py](../backend/app/db.py)
+  (`_MIGRATIONS`): append `(table, column, DDL-with-DEFAULT)` — it runs `ALTER TABLE ADD COLUMN`
+  only when the column is missing. New `DownloadOptions` fields don't need an entry.
+- **Secrets are masked**: option values in `SENSITIVE_KEYS` are redacted by `options.redact()`
+  before any job is returned from the API.
 - Python is formatted with `ruff` (line length 100); dependencies via `uv` and
   `pyproject.toml`. Frontend uses `pnpm`.
 

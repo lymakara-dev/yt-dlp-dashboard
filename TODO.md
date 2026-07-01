@@ -63,5 +63,8 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Better progress bars, speed graph, ETA, retry indicator, queue viz, dark mode, keyboard shortcuts, drag-and-drop, clipboard detection, toast notifications, responsive layout
 
 ## Wrap-up
-- [ ] Full code review + remove dead code
-- [ ] README + Developer Onboarding fully updated
+- [x] Full code review + remove dead code (removed unused `broker.clear`)
+- [x] README + Developer Onboarding fully updated
+
+All 15 phases + the options architecture foundation are complete: each feature
+works from both backend and frontend, with validation, tests, and docs.
