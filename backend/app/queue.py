@@ -21,6 +21,7 @@ from .downloader import (
     run_download,
 )
 from .models import TERMINAL_STATES, Job, JobStatus, utcnow
+from .options import merge_legacy
 
 log = logging.getLogger("ytdlp-dashboard.queue")
 
@@ -138,16 +139,20 @@ class JobManager:
             if job is None or job.status in TERMINAL_STATES:
                 return
             settings = get_settings(session)
+            options = merge_legacy(
+                format_id=job.format_id,
+                quality_preset=job.quality_preset,
+                audio_only=job.audio_only,
+                subtitles=job.subtitles,
+                embed_thumbnail=job.embed_thumbnail,
+                sponsorblock=job.sponsorblock,
+                options=job.options,
+            )
             opts = {
                 "url": job.url,
                 "download_dir": settings.download_dir,
                 "output_template": job.output_template or settings.default_output_template,
-                "format_id": job.format_id,
-                "quality_preset": job.quality_preset,
-                "audio_only": job.audio_only,
-                "subtitles": job.subtitles,
-                "embed_thumbnail": job.embed_thumbnail,
-                "sponsorblock": job.sponsorblock,
+                "options": options,
             }
             job.status = JobStatus.downloading
             job.updated_at = utcnow()

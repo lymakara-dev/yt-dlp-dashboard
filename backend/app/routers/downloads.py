@@ -33,6 +33,7 @@ async def create_download(req: DownloadRequest, session: Session = Depends(get_s
         embed_thumbnail=req.embed_thumbnail,
         sponsorblock=req.sponsorblock,
         output_template=req.output_template or settings.default_output_template,
+        options=req.options.model_dump(exclude_none=True) if req.options else {},
     )
 
     # Best-effort metadata so the UI/history has a title immediately.

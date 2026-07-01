@@ -35,6 +35,18 @@ export interface ProbeResponse {
 
 export type QualityPreset = "best" | "1080p" | "720p" | "audio";
 
+// Mirror of backend app/options.py DownloadOptions. Every knob optional; the
+// backend fills defaults. Grows as new phases add features.
+export interface DownloadOptions {
+  format_selector?: string | null;
+  format_id?: string | null;
+  quality_preset?: string | null;
+  audio_only?: boolean;
+  subtitles?: boolean;
+  embed_thumbnail?: boolean;
+  sponsorblock?: boolean;
+}
+
 export interface DownloadRequest {
   url: string;
   format_id?: string | null;
@@ -44,6 +56,7 @@ export interface DownloadRequest {
   embed_thumbnail?: boolean;
   sponsorblock?: boolean;
   output_template?: string | null;
+  options?: DownloadOptions;
 }
 
 export interface Job {
@@ -57,6 +70,7 @@ export interface Job {
   embed_thumbnail: boolean;
   sponsorblock: boolean;
   output_template: string | null;
+  options: DownloadOptions;
 
   title: string | null;
   uploader: string | null;

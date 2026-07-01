@@ -9,6 +9,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from .models import JobStatus
+from .options import DownloadOptions
 
 
 # ---------- Probe ----------
@@ -50,6 +51,8 @@ class DownloadRequest(BaseModel):
     embed_thumbnail: bool = False
     sponsorblock: bool = False
     output_template: str | None = None
+    # Full set of newer knobs. Legacy top-level fields above stay for back-compat.
+    options: DownloadOptions | None = None
 
 
 class JobRead(BaseModel):
@@ -63,6 +66,7 @@ class JobRead(BaseModel):
     embed_thumbnail: bool
     sponsorblock: bool
     output_template: str | None = None
+    options: dict = {}
 
     title: str | None = None
     uploader: str | None = None

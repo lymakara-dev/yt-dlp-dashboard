@@ -4,10 +4,31 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 
+from sqlalchemy import inspect, text
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from .config import config
 from .models import AppSettings
+
+# Lightweight additive migrations: (table, column, column DDL) applied only when
+# the column is missing. SQLite supports ADD COLUMN; every entry must carry a
+# DEFAULT so it can be added to a table that already has rows. This replaces a
+# full migration framework for our append-only schema evolution.
+_MIGRATIONS: list[tuple[str, str, str]] = [
+    ("job", "options", "JSON NOT NULL DEFAULT '{}'"),
+]
+
+
+def _run_migrations() -> None:
+    insp = inspect(engine)
+    tables = set(insp.get_table_names())
+    with engine.begin() as conn:
+        for table, column, ddl in _MIGRATIONS:
+            if table not in tables:
+                continue
+            existing = {c["name"] for c in insp.get_columns(table)}
+            if column not in existing:
+                conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {ddl}'))
 
 # check_same_thread=False because worker threads (thread executor) touch the DB.
 engine = create_engine(
@@ -18,8 +39,9 @@ engine = create_engine(
 
 
 def init_db() -> None:
-    """Create tables and seed the singleton settings row."""
+    """Create tables, apply additive migrations, and seed settings."""
     SQLModel.metadata.create_all(engine)
+    _run_migrations()
     with Session(engine) as session:
         existing = session.get(AppSettings, 1)
         if existing is None:

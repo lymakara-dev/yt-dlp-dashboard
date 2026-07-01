@@ -7,6 +7,7 @@ from typing import Any, Callable
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError, ExtractorError
 
+from .options import DownloadOptions
 from .schemas import FormatInfo, ProbeResponse
 
 
@@ -151,16 +152,23 @@ class DownloadFailed(Exception):
     """Wraps a yt-dlp DownloadError with a readable message."""
 
 
+def _select_format(o: DownloadOptions) -> str:
+    """Resolve the yt-dlp format selector string from the options."""
+    if o.format_selector:
+        return o.format_selector
+    if o.audio_only:
+        return o.format_id or "bestaudio/best"
+    if o.format_id:
+        # Advanced pick: try the exact format, fall back to merging audio, then best.
+        return f"{o.format_id}+ba/{o.format_id}/b"
+    return QUALITY_PRESETS.get(o.quality_preset or "best", QUALITY_PRESETS["best"])
+
+
 def build_ydl_opts(
+    o: DownloadOptions,
     *,
     download_dir: str,
     output_template: str,
-    format_id: str | None,
-    quality_preset: str | None,
-    audio_only: bool,
-    subtitles: bool,
-    embed_thumbnail: bool,
-    sponsorblock: bool,
     progress_hooks: list[ProgressHook],
     postprocessor_hooks: list[ProgressHook],
 ) -> dict[str, Any]:
@@ -168,16 +176,11 @@ def build_ydl_opts(
     postprocessors: list[dict[str, Any]] = []
 
     # ---- format selection ----
-    if audio_only:
-        fmt = format_id or "bestaudio/best"
+    fmt = _select_format(o)
+    if o.audio_only:
         postprocessors.append(
             {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}
         )
-    elif format_id:
-        # Advanced pick: try the exact format, fall back to merging audio, then best.
-        fmt = f"{format_id}+ba/{format_id}/b"
-    else:
-        fmt = QUALITY_PRESETS.get(quality_preset or "best", QUALITY_PRESETS["best"])
 
     opts: dict[str, Any] = {
         "format": fmt,
@@ -195,18 +198,18 @@ def build_ydl_opts(
         "restrictfilenames": False,
     }
 
-    if subtitles:
+    if o.subtitles:
         opts["writesubtitles"] = True
         opts["writeautomaticsub"] = True
         opts["subtitleslangs"] = ["en.*"]
-        if not audio_only:
+        if not o.audio_only:
             postprocessors.append({"key": "FFmpegEmbedSubtitle"})
 
-    if embed_thumbnail:
+    if o.embed_thumbnail:
         opts["writethumbnail"] = True
         postprocessors.append({"key": "EmbedThumbnail"})
 
-    if sponsorblock:
+    if o.sponsorblock:
         postprocessors.append({"key": "SponsorBlock", "categories": ["sponsor"]})
         postprocessors.append(
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]}
@@ -223,12 +226,7 @@ def run_download(
     url: str,
     download_dir: str,
     output_template: str,
-    format_id: str | None,
-    quality_preset: str | None,
-    audio_only: bool,
-    subtitles: bool,
-    embed_thumbnail: bool,
-    sponsorblock: bool,
+    options: DownloadOptions,
     on_event: ProgressHook,
     is_cancelled: Callable[[], bool],
 ) -> dict[str, Any]:
@@ -250,14 +248,9 @@ def run_download(
         on_event(_normalize_pp(d))
 
     opts = build_ydl_opts(
+        options,
         download_dir=download_dir,
         output_template=output_template,
-        format_id=format_id,
-        quality_preset=quality_preset,
-        audio_only=audio_only,
-        subtitles=subtitles,
-        embed_thumbnail=embed_thumbnail,
-        sponsorblock=sponsorblock,
         progress_hooks=[_progress_hook],
         postprocessor_hooks=[_pp_hook],
     )

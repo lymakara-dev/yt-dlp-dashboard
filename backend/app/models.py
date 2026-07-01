@@ -4,6 +4,7 @@ from __future__ import annotations
 import enum
 from datetime import datetime, timezone
 
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 
@@ -40,6 +41,10 @@ class Job(SQLModel, table=True):
     embed_thumbnail: bool = False
     sponsorblock: bool = False
     output_template: str | None = None
+
+    # Full DownloadOptions snapshot (see options.py) as JSON. Canonical store for
+    # every newer knob so adding a feature needs no per-column migration.
+    options: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
 
     # Metadata captured from yt-dlp (best-effort).
     title: str | None = None
