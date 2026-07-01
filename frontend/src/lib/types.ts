@@ -65,6 +65,10 @@ export interface DownloadOptions {
   write_comments?: boolean;
   preserve_mtime?: boolean;
 
+  // File organization
+  output_template?: string | null;
+  use_archive?: boolean;
+
   // Audio extraction
   audio_format?: string | null;
   audio_quality?: string | null;

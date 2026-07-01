@@ -90,6 +90,9 @@
 - Sortable history table with status badges, format, file size and date.
 - Per-row actions: download the finished file, re-download with the same options, or delete (optionally removing the file from disk).
 
+**File organization**
+- Per-download output/folder template override with quick-insert token chips (`%(title)s`, `%(uploader)s`, `%(playlist_index)s`, `%(upload_date)s`, `%(autonumber)s`, `/` for subfolders), plus a download-archive toggle to prevent re-downloading. Configure via **Advanced options → File organization**; set the global default in **Settings**.
+
 **Settings**
 - Configure download directory, default format, max concurrency, and the yt-dlp output template from the UI.
 - ffmpeg is detected at startup; the UI shows a clear warning if it's missing.

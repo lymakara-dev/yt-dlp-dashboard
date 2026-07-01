@@ -46,6 +46,10 @@ class DownloadOptions(BaseModel):
     write_all_thumbnails: bool = False  # save every available thumbnail
     convert_thumbnail: str | None = None  # convert to jpg | png | webp
 
+    # ---- file organization ----
+    output_template: str | None = None  # per-download output/folder template override
+    use_archive: bool = False  # record downloads in an archive to prevent duplicates
+
     # ---- audio extraction ----
     audio_format: str | None = None  # mp3|aac|opus|flac|wav|vorbis|m4a (with audio_only)
     audio_quality: str | None = None  # 0 (best) .. 10, or a kbps value like "192"

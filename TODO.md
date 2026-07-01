@@ -30,7 +30,7 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 - [x] Entire playlist, range, reverse, random, skip unavailable, flatten, ignore duplicates
 
 ## Phase 5 — File organization
-- [ ] Output templates, folder templates, auto numbering, archive file, prevent duplicates
+- [x] Output templates, folder templates, automatic numbering, archive file, prevent duplicates
 
 ## Phase 6 — Browser cookies
 - [x] Import cookies from Chrome/Chromium/Edge/Firefox/Brave/Opera/Vivaldi/Safari + UI selector

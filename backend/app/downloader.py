@@ -251,7 +251,7 @@ def build_ydl_opts(
     opts: dict[str, Any] = {
         "format": fmt,
         "paths": {"home": download_dir},
-        "outtmpl": {"default": output_template},
+        "outtmpl": {"default": o.output_template or output_template},
         "progress_hooks": progress_hooks,
         "postprocessor_hooks": postprocessor_hooks,
         "quiet": True,
@@ -410,7 +410,7 @@ def build_ydl_opts(
         opts["lazy_playlist"] = True
     if o.skip_unavailable:
         opts["ignoreerrors"] = True
-    if o.ignore_duplicates:
+    if o.ignore_duplicates or o.use_archive:
         opts["download_archive"] = os.path.join(download_dir, "archive.txt")
 
     # ---- ffmpeg / normalization postprocessor args ----

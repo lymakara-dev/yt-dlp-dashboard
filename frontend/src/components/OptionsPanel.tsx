@@ -19,6 +19,20 @@ import type { DownloadOptions } from "@/lib/types";
  * is a controlled editor over a partial DownloadOptions object; SubmitView owns
  * the state and forwards it to the API as `options`.
  */
+// Common yt-dlp output-template tokens surfaced as quick-insert chips.
+const TEMPLATE_TOKENS = [
+  "%(title)s",
+  "%(uploader)s",
+  "%(playlist)s",
+  "%(playlist_index)s",
+  "%(upload_date)s",
+  "%(id)s",
+  "%(ext)s",
+  "%(resolution)s",
+  "%(autonumber)s",
+  "/",
+];
+
 export function OptionsPanel({
   value,
   onChange,
@@ -31,8 +45,42 @@ export function OptionsPanel({
   const set = <K extends keyof DownloadOptions>(key: K, v: DownloadOptions[K]) =>
     onChange({ ...value, [key]: v });
 
+  const template = value.output_template ?? "";
+
   return (
     <div className="space-y-2">
+      <Section title="File organization" summary={value.output_template ? "custom" : null}>
+        <Field
+          label="Output template"
+          hint="Blank = use the default from Settings. Use / for subfolders."
+        >
+          <Input
+            value={template}
+            onChange={(e) => set("output_template", e.target.value || null)}
+            placeholder="%(title)s [%(id)s].%(ext)s"
+            className="font-mono text-sm"
+          />
+        </Field>
+        <div className="flex flex-wrap gap-1.5">
+          {TEMPLATE_TOKENS.map((tok) => (
+            <button
+              key={tok}
+              type="button"
+              onClick={() => set("output_template", (template || "") + tok)}
+              className="rounded-full border px-2 py-0.5 font-mono text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              {tok}
+            </button>
+          ))}
+        </div>
+        <OptToggle
+          label="Use download archive"
+          hint="Record downloads and skip anything already downloaded"
+          checked={!!value.use_archive}
+          onChange={(v) => set("use_archive", v)}
+        />
+      </Section>
+
       <Section title="Subtitles" summary={subtitleSummary(value)}>
         <OptToggle
           label="Download subtitles"

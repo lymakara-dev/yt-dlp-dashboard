@@ -328,6 +328,17 @@ def test_redact_masks_secrets_only():
     assert "password" not in redact({"username": "u"})
 
 
+def test_output_template_override_and_archive():
+    opts = _build(DownloadOptions(output_template="%(uploader)s/%(title)s.%(ext)s", use_archive=True))
+    assert opts["outtmpl"]["default"] == "%(uploader)s/%(title)s.%(ext)s"
+    assert opts["download_archive"].endswith("archive.txt")
+
+
+def test_output_template_falls_back_to_param():
+    opts = _build(DownloadOptions())
+    assert opts["outtmpl"]["default"] == "%(title)s.%(ext)s"
+
+
 def test_merge_legacy_blob_wins_over_columns():
     o = merge_legacy(
         format_id="140",
