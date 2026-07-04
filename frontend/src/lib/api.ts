@@ -80,6 +80,8 @@ export const api = {
   listDownloads: (page = 1, pageSize = 50) =>
     request<JobList>(`/api/downloads?page=${page}&page_size=${pageSize}`),
 
+  listActiveDownloads: () => request<JobList>("/api/downloads/active"),
+
   getDownload: (id: number) => request<Job>(`/api/downloads/${id}`),
 
   cancelDownload: (id: number) =>

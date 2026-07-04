@@ -28,6 +28,14 @@ from ..schemas import (
 
 router = APIRouter(prefix="/api/downloads", tags=["downloads"])
 
+# Non-terminal states shown on the Queue page, in worker-claim order.
+_ACTIVE_STATES = [
+    JobStatus.scheduled,
+    JobStatus.queued,
+    JobStatus.downloading,
+    JobStatus.post_processing,
+]
+
 
 def _job_read(job: Job) -> JobRead:
     """Validate a Job into its API shape with secret option values masked."""
@@ -133,7 +141,12 @@ def reorder_downloads(req: ReorderRequest, session: Session = Depends(get_sessio
     ).all()
     by_id = {j.id: j for j in queued}
 
-    listed = [by_id[i] for i in req.ordered_ids if i in by_id]
+    seen: set[int] = set()
+    listed = []
+    for i in req.ordered_ids:
+        if i in by_id and i not in seen:
+            seen.add(i)
+            listed.append(by_id[i])
     listed_ids = {j.id for j in listed}
     ordered = listed + [j for j in queued if j.id not in listed_ids]
 
@@ -157,6 +170,24 @@ def cancel_downloads(req: BulkCancelRequest, session: Session = Depends(get_sess
         manager.cancel(jid)
         cancelled += 1
     return BulkCancelResult(cancelled=cancelled)
+
+
+@router.get("/active", response_model=JobList)
+def list_active_downloads(session: Session = Depends(get_session)) -> JobList:
+    """All non-terminal jobs (scheduled/queued/downloading/post-processing), in
+    queue order. Uncapped: the Queue page must show every pending job, which a
+    paginated created_at-ordered list cannot guarantee (queued jobs run oldest-first)."""
+    items = session.exec(
+        select(Job)
+        .where(Job.status.in_(_ACTIVE_STATES))
+        .order_by(Job.queue_position, Job.created_at)
+    ).all()
+    return JobList(
+        items=[_job_read(j) for j in items],
+        total=len(items),
+        page=1,
+        page_size=max(1, len(items)),
+    )
 
 
 @router.get("", response_model=JobList)

@@ -14,7 +14,7 @@ export function QueuePage() {
   const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["downloads"],
-    queryFn: () => api.listDownloads(1, 100),
+    queryFn: () => api.listActiveDownloads(),
     refetchInterval: 5000,
   });
 

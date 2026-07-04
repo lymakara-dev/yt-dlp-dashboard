@@ -155,6 +155,55 @@ def test_bulk_cancel_cancels_queued_jobs(client):
         assert s.get(Job, c).status == JobStatus.queued  # untouched
 
 
+def test_list_active_returns_non_terminal_in_queue_order(client):
+    a, b, c = _make_queued("a", "b", "c")
+    with Session(engine) as s:
+        # queued positions: a=3, b=1, c=2
+        s.get(Job, a).queue_position = 3
+        s.get(Job, b).queue_position = 1
+        s.get(Job, c).queue_position = 2
+
+        downloading = Job(url="d", status=JobStatus.downloading, queue_position=5)
+        scheduled = Job(url="e", status=JobStatus.scheduled, queue_position=0)
+        completed = Job(url="f", status=JobStatus.completed, queue_position=4)
+        s.add_all([downloading, scheduled, completed])
+        s.commit()
+        s.refresh(downloading)
+        s.refresh(scheduled)
+        s.refresh(completed)
+        downloading_id = downloading.id
+        scheduled_id = scheduled.id
+        completed_id = completed.id
+
+    resp = client.get("/api/downloads/active")
+    assert resp.status_code == 200
+    body = resp.json()
+
+    ids = [item["id"] for item in body["items"]]
+    assert completed_id not in ids
+    # Ordered by queue_position: scheduled(0), b(1), c(2), a(3), downloading(5)
+    assert ids == [scheduled_id, b, c, a, downloading_id]
+    assert body["total"] == 5
+
+
+def test_reorder_dedupes_repeated_ids(client):
+    a, b = _make_queued("a", "b")
+    with Session(engine) as s:
+        s.get(Job, a).queue_position = 1
+        s.get(Job, b).queue_position = 2
+        s.commit()
+
+    resp = client.post("/api/downloads/reorder", json={"ordered_ids": [a, a, b]})
+    assert resp.status_code == 200
+
+    body = resp.json()
+    assert [item["id"] for item in body["items"]] == [a, b]
+
+    with Session(engine) as s:
+        assert s.get(Job, a).queue_position == 1
+        assert s.get(Job, b).queue_position == 2
+
+
 def test_bulk_cancel_skips_already_terminal_jobs(client):
     a, b = _make_queued("a", "b")
     with Session(engine) as s:
