@@ -124,6 +124,10 @@ class DeleteJobRequest(BaseModel):
     delete_file: bool = False
 
 
+class ReorderRequest(BaseModel):
+    ordered_ids: list[int]
+
+
 # ---------- Settings ----------
 class SettingsRead(BaseModel):
     download_dir: str

@@ -63,3 +63,81 @@ def test_claim_next_marks_downloading():
 async def _enqueue_all(mgr: JobManager, ids: list[int]) -> None:
     for jid in ids:
         await mgr.enqueue(jid)
+
+
+def test_reorder_endpoint_rewrites_positions(client):
+    a, b, c = _make_queued("a", "b", "c")
+    # Seed positions 1,2,3 so there's a defined starting order.
+    with Session(engine) as s:
+        for pos, jid in enumerate((a, b, c), start=1):
+            s.get(Job, jid).queue_position = pos
+        s.commit()
+
+    resp = client.post("/api/downloads/reorder", json={"ordered_ids": [c, a, b]})
+    assert resp.status_code == 200
+
+    with Session(engine) as s:
+        assert s.get(Job, c).queue_position == 1
+        assert s.get(Job, a).queue_position == 2
+        assert s.get(Job, b).queue_position == 3
+
+    body = resp.json()
+    assert [item["id"] for item in body["items"]] == [c, a, b]
+
+
+def test_reorder_skips_unknown_and_nonqueued_ids(client):
+    a, b = _make_queued("a", "b")
+    # 999999 does not exist; it must be ignored, not error.
+    resp = client.post("/api/downloads/reorder", json={"ordered_ids": [b, 999999, a]})
+    assert resp.status_code == 200
+    with Session(engine) as s:
+        assert s.get(Job, b).queue_position == 1
+        assert s.get(Job, a).queue_position == 2
+
+
+def test_reorder_omitted_queued_jobs_keep_relative_order(client):
+    a, b, c, d = _make_queued("a", "b", "c", "d")
+    with Session(engine) as s:
+        for pos, jid in enumerate((a, b, c, d), start=1):
+            s.get(Job, jid).queue_position = pos
+        s.commit()
+
+    # Only a subset is listed; omitted queued jobs (b, d) must keep their
+    # original relative order and sort after the listed ones.
+    resp = client.post("/api/downloads/reorder", json={"ordered_ids": [c, a]})
+    assert resp.status_code == 200
+
+    with Session(engine) as s:
+        assert s.get(Job, c).queue_position == 1
+        assert s.get(Job, a).queue_position == 2
+        assert s.get(Job, b).queue_position == 3
+        assert s.get(Job, d).queue_position == 4
+
+    body = resp.json()
+    assert [item["id"] for item in body["items"]] == [c, a, b, d]
+
+
+def test_reorder_skips_nonqueued_status_id(client):
+    a, b = _make_queued("a", "b")
+    # A downloading job must be skipped: not repositioned, not returned.
+    with Session(engine) as s:
+        d = Job(url="d", status=JobStatus.downloading)
+        s.add(d)
+        s.commit()
+        s.refresh(d)
+        d_id = d.id
+        d_pos = d.queue_position
+
+    resp = client.post("/api/downloads/reorder", json={"ordered_ids": [b, d_id, a]})
+    assert resp.status_code == 200
+
+    with Session(engine) as s:
+        assert s.get(Job, b).queue_position == 1
+        assert s.get(Job, a).queue_position == 2
+        # The downloading job is untouched by the reorder.
+        assert s.get(Job, d_id).queue_position == d_pos
+        assert s.get(Job, d_id).status == JobStatus.downloading
+
+    body = resp.json()
+    assert d_id not in [item["id"] for item in body["items"]]
+    assert [item["id"] for item in body["items"]] == [b, a]

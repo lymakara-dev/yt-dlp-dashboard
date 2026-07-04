@@ -21,6 +21,7 @@ from ..schemas import (
     DownloadRequest,
     JobList,
     JobRead,
+    ReorderRequest,
 )
 
 router = APIRouter(prefix="/api/downloads", tags=["downloads"])
@@ -114,6 +115,33 @@ async def create_batch(req: BatchRequest, session: Session = Depends(get_session
     for jid in ids:
         await manager.enqueue(jid)
     return CreatedBatch(ids=ids, count=len(ids))
+
+
+@router.post("/reorder", response_model=JobList)
+def reorder_downloads(req: ReorderRequest, session: Session = Depends(get_session)) -> JobList:
+    """Rewrite queue_position over the currently-queued jobs in the given order.
+
+    Ids that are unknown or no longer queued are skipped. Queued jobs omitted
+    from the payload keep their relative order and sort after the listed ones.
+    """
+    queued = session.exec(
+        select(Job)
+        .where(Job.status == JobStatus.queued)
+        .order_by(Job.queue_position, Job.created_at)
+    ).all()
+    by_id = {j.id: j for j in queued}
+
+    listed = [by_id[i] for i in req.ordered_ids if i in by_id]
+    listed_ids = {j.id for j in listed}
+    ordered = listed + [j for j in queued if j.id not in listed_ids]
+
+    for pos, job in enumerate(ordered, start=1):
+        job.queue_position = pos
+        job.updated_at = utcnow()
+    session.commit()
+
+    items = [_job_read(j) for j in ordered]
+    return JobList(items=items, total=len(items), page=1, page_size=max(1, len(items)))
 
 
 @router.get("", response_model=JobList)
