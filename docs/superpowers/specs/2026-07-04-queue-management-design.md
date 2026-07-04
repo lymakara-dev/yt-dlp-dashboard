@@ -58,7 +58,9 @@ Rejected alternatives:
 - Additive migration entry: `("job", "queue_position", "INTEGER NOT NULL DEFAULT 0")`.
 - On **enqueue** (single create, batch create, scheduled-job-becomes-due),
   assign `queue_position = (max queue_position among queued jobs) + 1` so new
-  work appends to the end. Batch import assigns sequential positions.
+  work appends to the end. Batch import assigns consecutive increasing positions.
+  `queue_position` is only meaningful for `queued` jobs; other statuses retain
+  whatever value they had (unused).
 
 ### Queue worker (`queue.py`)
 
@@ -78,13 +80,16 @@ Rejected alternatives:
 
 ### Endpoints (`routers/downloads.py`, `schemas.py`)
 
-- `POST /api/downloads/reorder` — body `{ ordered_ids: number[] }`. Validates the
-  ids are currently `queued`; reassigns `queue_position` in the given order
-  (0..n-1 or 1..n). Ids not in `queued` are ignored/rejected (422 if any id is
-  unknown or not queued — decide in plan; default: ignore non-queued, 404 on
-  unknown). Returns the updated queued list (or 204). Drag-and-drop sends the
-  full new order; up/down/"Download next" buttons compute the new order
-  client-side and hit the same endpoint.
+- `POST /api/downloads/reorder` — body `{ ordered_ids: number[] }`. Reassigns
+  `queue_position` over the currently-`queued` jobs in the given order. Ids that
+  are unknown or no longer `queued` (e.g. one just started downloading) are
+  **skipped, not fatal** — consistent with bulk cancel; the client refetch
+  reconciles. Any queued jobs omitted from `ordered_ids` keep their relative
+  order and sort after the listed ones. Positions are assigned as consecutive
+  increasing integers (starting at 1); the UI badge shows this 1-based position.
+  Returns the updated queued list. Drag-and-drop sends the full new order;
+  up/down/"Download next" buttons compute the new order client-side and hit the
+  same endpoint.
 - `POST /api/downloads/cancel` — body `{ ids: number[] }`. Cancels each via
   `manager.cancel`; returns `{ cancelled: number }`. Powers multi-select cancel
   and "Cancel all queued" (frontend passes all queued ids). Terminal/unknown ids
