@@ -17,6 +17,7 @@ from .models import AppSettings
 _MIGRATIONS: list[tuple[str, str, str]] = [
     ("job", "options", "JSON NOT NULL DEFAULT '{}'"),
     ("job", "scheduled_at", "DATETIME"),
+    ("job", "queue_position", "INTEGER NOT NULL DEFAULT 0"),
     ("appsettings", "watch_folder", "TEXT NOT NULL DEFAULT ''"),
     ("appsettings", "watch_interval", "INTEGER NOT NULL DEFAULT 30"),
 ]

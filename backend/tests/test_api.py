@@ -16,3 +16,12 @@ def test_expected_routes_registered():
         "/api/health",
     ):
         assert path in paths, f"missing route {path}"
+
+
+def test_jobread_exposes_queue_position():
+    from app.models import Job, JobStatus
+    from app.schemas import JobRead
+
+    job = Job(id=1, url="https://x", status=JobStatus.queued, queue_position=3)
+    read = JobRead.model_validate(job)
+    assert read.queue_position == 3

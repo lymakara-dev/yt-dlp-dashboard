@@ -87,6 +87,7 @@ class JobRead(BaseModel):
     embed_thumbnail: bool
     sponsorblock: bool
     output_template: str | None = None
+    queue_position: int = 0
     options: dict = {}
 
     title: str | None = None

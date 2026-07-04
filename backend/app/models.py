@@ -43,6 +43,10 @@ class Job(SQLModel, table=True):
     sponsorblock: bool = False
     output_template: str | None = None
 
+    # Ordering within the pending queue; lower runs first. Only meaningful while
+    # status == queued. Assigned on enqueue, rewritten by the reorder endpoint.
+    queue_position: int = Field(default=0, index=True)
+
     # Full DownloadOptions snapshot (see options.py) as JSON. Canonical store for
     # every newer knob so adding a feature needs no per-column migration.
     options: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
