@@ -51,6 +51,7 @@
 - Concurrent downloads via an async job queue with a configurable worker pool.
 - Job states tracked end to end: `queued → downloading → post-processing → completed` (plus `error` and `cancelled`).
 - Cancel in-flight or queued downloads; jobs persist to SQLite and **survive restarts** (interrupted jobs are re-queued).
+- **Queue page:** a dedicated tab lists everything pending or in progress — grouped into *Downloading now*, *Up next*, and *Scheduled* — with live progress. Reorder the waiting queue by drag-and-drop or move / "Download next" buttons, and cancel a single job, a multi-select set, or all queued at once.
 
 **Formats &amp; quality**
 - One-click presets: **Best (video + audio)**, **1080p**, **720p**, **Audio only (mp3)**.
@@ -263,6 +264,8 @@ All endpoints are under `/api`; interactive OpenAPI docs are at `/docs`.
 | `GET` | `/api/downloads` | List jobs (paginated) |
 | `GET` | `/api/downloads/{id}` | Get a single job |
 | `POST` | `/api/downloads/{id}/cancel` | Cancel a queued or running job |
+| `POST` | `/api/downloads/reorder` | Reorder the pending queue (`{ "ordered_ids": [...] }`) |
+| `POST` | `/api/downloads/cancel` | Bulk-cancel jobs (`{ "ids": [...] }`) |
 | `DELETE` | `/api/downloads/{id}` | Remove from history (optionally delete the file) |
 | `GET` | `/api/settings` · `PUT` | Read / update settings |
 | `GET` | `/api/files/{id}` | Download the finished file |
