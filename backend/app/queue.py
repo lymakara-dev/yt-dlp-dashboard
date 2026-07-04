@@ -14,6 +14,8 @@ import time
 from typing import Any
 
 from .broker import broker
+from sqlmodel import func
+
 from .db import get_settings, session_scope
 from .downloader import (
     DownloadCancelled,
@@ -52,16 +54,22 @@ class JobManager:
         with session_scope() as session:
             settings = get_settings(session)
             self._target_workers = max(1, settings.max_concurrency)
-            # Recover interrupted jobs.
-            interrupted = session.query(Job).filter(
-                Job.status.in_(
-                    [JobStatus.queued, JobStatus.downloading, JobStatus.post_processing]
+            # Recover interrupted jobs, preserving their prior order.
+            interrupted = (
+                session.query(Job)
+                .filter(
+                    Job.status.in_(
+                        [JobStatus.queued, JobStatus.downloading, JobStatus.post_processing]
+                    )
                 )
-            ).all()
+                .order_by(Job.queue_position, Job.created_at)
+                .all()
+            )
             requeue_ids = []
-            for job in interrupted:
+            for pos, job in enumerate(interrupted, start=1):
                 job.status = JobStatus.queued
                 job.progress = 0.0
+                job.queue_position = pos
                 job.updated_at = utcnow()
                 requeue_ids.append(job.id)
 
@@ -96,7 +104,24 @@ class JobManager:
     # ---------- enqueue / cancel ----------
     async def enqueue(self, job_id: int) -> None:
         self._cancel_requested.discard(job_id)
+        self._assign_position(job_id)
+        # The queued item is only a wake token; real order lives in queue_position.
         await self._queue.put(job_id)
+
+    def _assign_position(self, job_id: int) -> None:
+        """Append the job to the end of the pending order (max position + 1)."""
+        with session_scope() as session:
+            job = session.get(Job, job_id)
+            if job is None:
+                return
+            max_pos = (
+                session.query(func.max(Job.queue_position))
+                .filter(Job.status == JobStatus.queued)
+                .scalar()
+                or 0
+            )
+            job.queue_position = max_pos + 1
+            job.updated_at = utcnow()
 
     def cancel(self, job_id: int) -> bool:
         """Request cancellation. Returns True if the job was active/queued."""
@@ -117,18 +142,38 @@ class JobManager:
         return False
 
     # ---------- worker ----------
+    def _claim_next(self) -> int | None:
+        """Pick the next queued job by position and mark it downloading.
+
+        Runs synchronously on the event loop, so there is no await between the
+        read and the status write: two workers cannot claim the same job, and
+        no explicit lock is needed.
+        """
+        with session_scope() as session:
+            job = (
+                session.query(Job)
+                .filter(Job.status == JobStatus.queued)
+                .order_by(Job.queue_position, Job.created_at)
+                .first()
+            )
+            if job is None:
+                return None
+            job.status = JobStatus.downloading
+            job.updated_at = utcnow()
+            return job.id
+
     async def _worker(self, idx: int) -> None:
         while True:
-            job_id = await self._queue.get()
+            await self._queue.get()  # wake token; may be stale (orphaned by a cancel)
             try:
-                if job_id in self._cancel_requested:
-                    self._cancel_requested.discard(job_id)
-                    continue
+                job_id = self._claim_next()
+                if job_id is None:
+                    continue  # nothing queued right now
                 await self._process(job_id)
             except asyncio.CancelledError:
                 raise
             except Exception:  # never let a worker die
-                log.exception("Worker %d failed processing job %s", idx, job_id)
+                log.exception("Worker %d failed processing a job", idx)
             finally:
                 self._queue.task_done()
 
