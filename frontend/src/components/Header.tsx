@@ -1,12 +1,13 @@
-import { Download, History, Search, Settings } from "lucide-react";
+import { Download, History, ListOrdered, Search, Settings } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
-export type View = "home" | "search" | "history" | "settings";
+export type View = "home" | "queue" | "search" | "history" | "settings";
 
 const NAV: { key: View; label: string; icon: typeof Download }[] = [
   { key: "home", label: "Download", icon: Download },
+  { key: "queue", label: "Queue", icon: ListOrdered },
   { key: "search", label: "Search", icon: Search },
   { key: "history", label: "History", icon: History },
   { key: "settings", label: "Settings", icon: Settings },
