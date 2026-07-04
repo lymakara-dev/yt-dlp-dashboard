@@ -153,3 +153,23 @@ def test_bulk_cancel_cancels_queued_jobs(client):
         assert s.get(Job, a).status == JobStatus.cancelled
         assert s.get(Job, b).status == JobStatus.cancelled
         assert s.get(Job, c).status == JobStatus.queued  # untouched
+
+
+def test_bulk_cancel_skips_already_terminal_jobs(client):
+    a, b = _make_queued("a", "b")
+    with Session(engine) as s:
+        done = Job(url="done", status=JobStatus.completed)
+        s.add(done)
+        s.commit()
+        s.refresh(done)
+        done_id = done.id
+
+    resp = client.post("/api/downloads/cancel", json={"ids": [a, done_id, b]})
+    assert resp.status_code == 200
+    assert resp.json()["cancelled"] == 2  # terminal job not counted
+
+    with Session(engine) as s:
+        assert s.get(Job, a).status == JobStatus.cancelled
+        assert s.get(Job, b).status == JobStatus.cancelled
+        # The already-completed job is left untouched, not re-cancelled.
+        assert s.get(Job, done_id).status == JobStatus.completed
