@@ -10,10 +10,15 @@ import type { Job, JobList, JobStatus } from "@/lib/types";
 
 const RUNNING: JobStatus[] = ["downloading", "post-processing"];
 
+// The Queue owns its own cache slot so it doesn't collide with HistoryTable's
+// ["downloads"] query (which fetches a different shape). A ["downloads"] prefix
+// invalidation from anywhere still refreshes this — React Query matches by prefix.
+const QUEUE_KEY = ["downloads", "active"] as const;
+
 export function QueuePage() {
   const qc = useQueryClient();
   const { data } = useQuery({
-    queryKey: ["downloads"],
+    queryKey: QUEUE_KEY,
     queryFn: () => api.listActiveDownloads(),
     refetchInterval: 5000,
   });
@@ -33,11 +38,11 @@ export function QueuePage() {
     mutationFn: (ids: number[]) => api.reorderDownloads(ids),
     // Optimistic: reflect the new order immediately so DnD feels instant.
     onMutate: async (ids: number[]) => {
-      await qc.cancelQueries({ queryKey: ["downloads"] });
-      const prev = qc.getQueryData<JobList>(["downloads"]);
+      await qc.cancelQueries({ queryKey: QUEUE_KEY });
+      const prev = qc.getQueryData<JobList>(QUEUE_KEY);
       if (prev) {
         const pos = new Map(ids.map((id, i) => [id, i + 1]));
-        qc.setQueryData<JobList>(["downloads"], {
+        qc.setQueryData<JobList>(QUEUE_KEY, {
           ...prev,
           items: prev.items.map((j) =>
             pos.has(j.id) ? { ...j, queue_position: pos.get(j.id)! } : j,
@@ -47,7 +52,7 @@ export function QueuePage() {
       return { prev };
     },
     onError: (e: ApiError, _ids, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["downloads"], ctx.prev);
+      if (ctx?.prev) qc.setQueryData(QUEUE_KEY, ctx.prev);
       toast.error("Reorder failed", { description: e.message });
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["downloads"] }),
