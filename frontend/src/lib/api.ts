@@ -85,6 +85,18 @@ export const api = {
   cancelDownload: (id: number) =>
     request<Job>(`/api/downloads/${id}/cancel`, { method: "POST" }),
 
+  reorderDownloads: (orderedIds: number[]) =>
+    request<JobList>("/api/downloads/reorder", {
+      method: "POST",
+      body: JSON.stringify({ ordered_ids: orderedIds }),
+    }),
+
+  cancelDownloads: (ids: number[]) =>
+    request<{ cancelled: number }>("/api/downloads/cancel", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
+
   deleteDownload: (id: number, deleteFile = false) =>
     request<void>(`/api/downloads/${id}`, {
       method: "DELETE",

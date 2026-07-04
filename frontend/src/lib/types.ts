@@ -167,6 +167,7 @@ export interface Job {
   embed_thumbnail: boolean;
   sponsorblock: boolean;
   output_template: string | null;
+  queue_position: number;
   options: DownloadOptions;
 
   title: string | null;
