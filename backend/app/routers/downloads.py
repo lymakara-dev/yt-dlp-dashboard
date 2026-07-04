@@ -15,6 +15,8 @@ from ..options import redact
 from ..queue import manager
 from ..schemas import (
     BatchRequest,
+    BulkCancelRequest,
+    BulkCancelResult,
     CreatedBatch,
     CreatedJob,
     DeleteJobRequest,
@@ -142,6 +144,19 @@ def reorder_downloads(req: ReorderRequest, session: Session = Depends(get_sessio
 
     items = [_job_read(j) for j in ordered]
     return JobList(items=items, total=len(items), page=1, page_size=max(1, len(items)))
+
+
+@router.post("/cancel", response_model=BulkCancelResult)
+def cancel_downloads(req: BulkCancelRequest, session: Session = Depends(get_session)) -> BulkCancelResult:
+    """Cancel many jobs at once. Unknown or already-terminal ids are skipped."""
+    cancelled = 0
+    for jid in req.ids:
+        job = session.get(Job, jid)
+        if job is None or job.status in TERMINAL_STATES:
+            continue
+        manager.cancel(jid)
+        cancelled += 1
+    return BulkCancelResult(cancelled=cancelled)
 
 
 @router.get("", response_model=JobList)

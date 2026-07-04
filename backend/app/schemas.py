@@ -128,6 +128,14 @@ class ReorderRequest(BaseModel):
     ordered_ids: list[int]
 
 
+class BulkCancelRequest(BaseModel):
+    ids: list[int]
+
+
+class BulkCancelResult(BaseModel):
+    cancelled: int
+
+
 # ---------- Settings ----------
 class SettingsRead(BaseModel):
     download_dir: str

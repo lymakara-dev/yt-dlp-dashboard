@@ -141,3 +141,15 @@ def test_reorder_skips_nonqueued_status_id(client):
     body = resp.json()
     assert d_id not in [item["id"] for item in body["items"]]
     assert [item["id"] for item in body["items"]] == [b, a]
+
+
+def test_bulk_cancel_cancels_queued_jobs(client):
+    a, b, c = _make_queued("a", "b", "c")
+    resp = client.post("/api/downloads/cancel", json={"ids": [a, b, 999999]})
+    assert resp.status_code == 200
+    assert resp.json()["cancelled"] == 2  # 999999 skipped
+
+    with Session(engine) as s:
+        assert s.get(Job, a).status == JobStatus.cancelled
+        assert s.get(Job, b).status == JobStatus.cancelled
+        assert s.get(Job, c).status == JobStatus.queued  # untouched
