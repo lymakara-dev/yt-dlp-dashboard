@@ -1,6 +1,7 @@
 """Thin wrappers around yt-dlp's YoutubeDL used as a library (no shelling out)."""
 from __future__ import annotations
 
+import logging
 import os
 import shlex
 import shutil
@@ -11,6 +12,8 @@ from yt_dlp.utils import DownloadError, ExtractorError
 
 from .options import DownloadOptions
 from .schemas import FormatInfo, ProbeResponse
+
+log = logging.getLogger(__name__)
 
 
 class ProbeError(Exception):
@@ -546,6 +549,25 @@ def build_ydl_opts(
     return opts
 
 
+def _maybe_attach_lyrics(options: DownloadOptions, filepath: str | None) -> None:
+    """Attach lyrics to a finished file when the job carries lyrics text.
+
+    Imported lazily so mutagen stays an optional import path. Never raises.
+    """
+    if not filepath:
+        return
+    synced = options.lyrics_synced
+    plain = options.lyrics_plain
+    if not synced and not plain:
+        return
+    try:
+        from .tagging import attach_lyrics
+
+        attach_lyrics(filepath, synced, plain)
+    except Exception as exc:
+        log.warning("Attaching lyrics failed for %s: %s", filepath, exc)
+
+
 def run_download(
     *,
     url: str,
@@ -591,7 +613,9 @@ def run_download(
     except Exception as exc:
         raise DownloadFailed(f"Download failed: {exc}") from exc
 
-    return _extract_result(info)
+    result = _extract_result(info)
+    _maybe_attach_lyrics(options, result.get("filepath"))
+    return result
 
 
 def _entry_file(entry: dict[str, Any]) -> tuple[str | None, int | None]:
