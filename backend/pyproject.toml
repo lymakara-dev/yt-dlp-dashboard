@@ -13,11 +13,11 @@ dependencies = [
     "pydantic-settings>=2.6",
     "websockets>=13.0",
     "python-multipart>=0.0.12",
+    "httpx>=0.27",
 ]
 
 [dependency-groups]
 dev = [
-    "httpx>=0.27",
     "pytest>=8.3",
 ]
 
