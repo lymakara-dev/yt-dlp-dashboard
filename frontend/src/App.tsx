@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BatchImport } from "@/components/BatchImport";
 import { Header, type View } from "@/components/Header";
 import { HistoryTable } from "@/components/HistoryTable";
+import { LyricsPage } from "@/components/LyricsPage";
 import { QueuePage } from "@/components/QueuePage";
 import { SearchPage } from "@/components/SearchPage";
 import { SettingsPage } from "@/components/SettingsPage";
@@ -30,6 +31,12 @@ export default function App() {
           <div className="space-y-4">
             <h1 className="text-xl font-semibold">Search</h1>
             <SearchPage />
+          </div>
+        )}
+        {view === "lyrics" && (
+          <div className="space-y-4">
+            <h1 className="text-xl font-semibold">Lyrics + Audio</h1>
+            <LyricsPage />
           </div>
         )}
         {view === "history" && (
