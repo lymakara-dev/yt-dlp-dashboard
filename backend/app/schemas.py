@@ -61,6 +61,28 @@ class SearchResponse(BaseModel):
     results: list[SearchResultItem] = []
 
 
+# ---------- Lyrics ----------
+class LyricsSearchRequest(BaseModel):
+    track: str
+    artist: str
+    limit: int = 5
+
+
+class LyricsCandidateOut(BaseModel):
+    track: str | None = None
+    artist: str | None = None
+    album: str | None = None
+    duration: float | None = None
+    synced_lyrics: str | None = None
+    plain_lyrics: str | None = None
+
+
+class LyricsSearchResponse(BaseModel):
+    lyrics: list[LyricsCandidateOut] = []
+    audio: list[SearchResultItem] = []
+    lyrics_available: bool = True  # False when LRCLIB was unreachable
+
+
 # ---------- Downloads ----------
 class DownloadRequest(BaseModel):
     url: str
