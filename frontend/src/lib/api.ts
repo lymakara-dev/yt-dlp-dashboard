@@ -3,6 +3,7 @@ import type {
   HealthResponse,
   Job,
   JobList,
+  LyricsSearchResponse,
   ProbeResponse,
   SearchResponse,
   Settings,
@@ -63,6 +64,12 @@ export const api = {
     request<SearchResponse>("/api/search", {
       method: "POST",
       body: JSON.stringify({ query, provider, limit }),
+    }),
+
+  lyricsSearch: (track: string, artist: string, limit = 5) =>
+    request<LyricsSearchResponse>("/api/lyrics/search", {
+      method: "POST",
+      body: JSON.stringify({ track, artist, limit }),
     }),
 
   createDownload: (req: DownloadRequest) =>

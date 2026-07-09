@@ -101,6 +101,10 @@ export interface DownloadOptions {
   normalize_audio?: boolean;
   ffmpeg_args?: string | null;
 
+  // Lyrics
+  lyrics_synced?: string | null;
+  lyrics_plain?: string | null;
+
   // Playlist
   playlist?: boolean;
   playlist_items?: string | null;
@@ -202,6 +206,21 @@ export interface SearchResultItem {
 
 export interface SearchResponse {
   results: SearchResultItem[];
+}
+
+export interface LyricsCandidate {
+  track: string | null;
+  artist: string | null;
+  album: string | null;
+  duration: number | null;
+  synced_lyrics: string | null;
+  plain_lyrics: string | null;
+}
+
+export interface LyricsSearchResponse {
+  lyrics: LyricsCandidate[];
+  audio: SearchResultItem[];
+  lyrics_available: boolean;
 }
 
 export interface JobList {
