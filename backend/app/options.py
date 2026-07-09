@@ -81,6 +81,10 @@ class DownloadOptions(BaseModel):
     normalize_audio: bool = False  # apply ffmpeg loudnorm during extraction
     ffmpeg_args: str | None = None  # raw args appended to ffmpeg postprocessors
 
+    # ---- lyrics (title+artist lyrics feature) ----
+    lyrics_synced: str | None = None  # LRC-format synced lyrics to attach
+    lyrics_plain: str | None = None  # plain lyrics fallback to attach
+
     # ---- metadata ----
     write_info_json: bool = False  # write the full .info.json sidecar
     embed_metadata: bool = False  # embed title/uploader/date/description in-container

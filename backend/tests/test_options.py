@@ -433,3 +433,20 @@ def test_merge_legacy_blob_wins_over_columns():
     assert o.audio_only is False
     assert o.format_selector == "worst"
     assert o.format_id == "140"
+
+
+def test_download_options_carry_lyrics():
+    from app.options import DownloadOptions, merge_legacy
+
+    o = DownloadOptions(lyrics_synced="[00:00.00] hi", lyrics_plain="hi")
+    dumped = o.model_dump(exclude_none=True)
+    assert dumped["lyrics_synced"] == "[00:00.00] hi"
+    assert dumped["lyrics_plain"] == "hi"
+
+    merged = merge_legacy(
+        format_id=None, quality_preset=None, audio_only=True,
+        subtitles=False, embed_thumbnail=False, sponsorblock=False,
+        options={"lyrics_synced": "[00:00.00] hi", "lyrics_plain": "hi"},
+    )
+    assert merged.lyrics_synced == "[00:00.00] hi"
+    assert merged.lyrics_plain == "hi"
