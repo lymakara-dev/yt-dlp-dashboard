@@ -26,6 +26,7 @@ export function LyricsPage() {
       const lyric = search.data?.lyrics[selected];
       return api.createDownload({
         url,
+        audio_only: true,
         options: {
           audio_only: true,
           audio_format: "mp3",

@@ -12,7 +12,7 @@ import httpx
 
 LRCLIB_SEARCH_URL = "https://lrclib.net/api/search"
 USER_AGENT = "yt-dlp-dashboard (https://github.com/yt-dlp-dashboard)"
-_TIMEOUT = 10.0
+_TIMEOUT = 15.0  # LRCLIB search can legitimately take 6-7s; leave headroom
 
 
 class LyricsError(Exception):
