@@ -245,10 +245,14 @@ def delete_download(
         raise HTTPException(status_code=404, detail="Job not found.")
     if job.status not in TERMINAL_STATES:
         manager.cancel(job_id)
-    if body and body.delete_file and job.filepath and os.path.exists(job.filepath):
-        try:
-            os.remove(job.filepath)
-        except OSError:
-            pass
+    if body and body.delete_file and job.filepath:
+        # Remove the media file and its lyrics sidecar (if any) together.
+        lrc_path = os.path.splitext(job.filepath)[0] + ".lrc"
+        for path in (job.filepath, lrc_path):
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
     session.delete(job)
     session.commit()

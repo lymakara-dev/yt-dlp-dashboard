@@ -49,3 +49,22 @@ def test_get_lyrics_file_409_when_not_completed(client, tmp_path):
         jid = job.id
     r = client.get(f"/api/files/{jid}/lyrics")
     assert r.status_code == 409
+
+
+def test_delete_with_file_also_removes_lrc_sidecar(client, tmp_path):
+    jid = _completed_job(tmp_path, with_lrc=True)
+    mp3 = tmp_path / "song.mp3"
+    lrc = tmp_path / "song.lrc"
+    assert mp3.exists() and lrc.exists()
+    r = client.request("DELETE", f"/api/downloads/{jid}", json={"delete_file": True})
+    assert r.status_code == 204
+    assert not mp3.exists()
+    assert not lrc.exists()  # sidecar cleaned up alongside the audio
+
+
+def test_delete_keeps_files_when_delete_file_false(client, tmp_path):
+    jid = _completed_job(tmp_path, with_lrc=True)
+    r = client.request("DELETE", f"/api/downloads/{jid}", json={"delete_file": False})
+    assert r.status_code == 204
+    assert (tmp_path / "song.mp3").exists()
+    assert (tmp_path / "song.lrc").exists()  # history-only removal leaves disk untouched
