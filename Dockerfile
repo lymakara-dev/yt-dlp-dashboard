@@ -20,6 +20,10 @@ RUN apt-get update \
 # uv for dependency management.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
+# deno: JS runtime yt-dlp needs to solve YouTube signature challenges.
+# Without it, downloads intermittently fail with HTTP 403 / missing formats.
+COPY --from=denoland/deno:bin /deno /usr/local/bin/deno
+
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
