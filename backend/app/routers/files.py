@@ -27,3 +27,21 @@ def get_file(job_id: int, session: Session = Depends(get_session)) -> FileRespon
         filename=os.path.basename(job.filepath),
         media_type="application/octet-stream",
     )
+
+
+@router.get("/{job_id}/lyrics")
+def get_lyrics_file(job_id: int, session: Session = Depends(get_session)) -> FileResponse:
+    """Serve the `.lrc` sidecar written next to a completed download's file."""
+    job = session.get(Job, job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+    if job.status != JobStatus.completed or not job.filepath:
+        raise HTTPException(status_code=409, detail="File is not ready.")
+    lrc_path = os.path.splitext(job.filepath)[0] + ".lrc"
+    if not os.path.exists(lrc_path):
+        raise HTTPException(status_code=404, detail="No lyrics file for this download.")
+    return FileResponse(
+        lrc_path,
+        filename=os.path.basename(lrc_path),
+        media_type="text/plain; charset=utf-8",
+    )

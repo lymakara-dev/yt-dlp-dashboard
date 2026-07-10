@@ -121,6 +121,8 @@ export const api = {
     }),
 
   fileUrl: (id: number) => `/api/files/${id}`,
+
+  lyricsFileUrl: (id: number) => `/api/files/${id}/lyrics`,
 };
 
 // Build the absolute WebSocket URL for a job's progress stream.

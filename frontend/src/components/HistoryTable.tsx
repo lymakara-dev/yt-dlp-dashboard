@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, History, MoreHorizontal, RotateCw, Trash2 } from "lucide-react";
+import { Download, FileText, History, MoreHorizontal, RotateCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -143,6 +143,14 @@ export function HistoryTable() {
                         <DropdownMenuItem asChild>
                           <a href={api.fileUrl(job.id)} download>
                             <Download className="h-4 w-4" /> Download file
+                          </a>
+                        </DropdownMenuItem>
+                      ) : null}
+                      {job.status === "completed" &&
+                      (job.options?.lyrics_synced || job.options?.lyrics_plain) ? (
+                        <DropdownMenuItem asChild>
+                          <a href={api.lyricsFileUrl(job.id)} download>
+                            <FileText className="h-4 w-4" /> Download .lrc
                           </a>
                         </DropdownMenuItem>
                       ) : null}
