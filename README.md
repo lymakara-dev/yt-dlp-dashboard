@@ -75,6 +75,7 @@
 **Lyrics + Audio**
 - A dedicated **Lyrics** page: search a song by **title + artist**, and the dashboard fetches synced lyrics from [LRCLIB](https://lrclib.net) and audio candidates via yt-dlp search side by side. Backed by `POST /api/lyrics/search`.
 - You confirm which track to download; it grabs the mp3 through the normal queue and attaches the lyrics as an embedded ID3 tag (`USLT`/`SYLT`) **and** a `.lrc` sidecar file next to the audio. If no lyrics are found, you can still download the audio on its own.
+- **Bring your own lyrics:** for songs the lyrics database doesn't cover, use **History → ⋯ → Add lyrics** to paste plain text or LRC-format lines onto any completed download — they're embedded into the file and saved as a `.lrc`, same as an automatic match. Grab the sidecar any time via **Download .lrc**.
 
 **Developer features**
 - **Raw info extraction:** `View raw JSON` on the download screen fetches the full sanitized yt-dlp info dict (`POST /api/probe/raw`) and can export it to `info.json`. **External downloaders:** use `aria2c` (or any installed downloader) with custom args. Plus the `.info.json` sidecar, custom ffmpeg/postprocessor args, and progress hooks (WebSocket). Configure via **Advanced options → Developer**.
@@ -269,6 +270,8 @@ All endpoints are under `/api`; interactive OpenAPI docs are at `/docs`.
 | `GET` | `/api/downloads` | List jobs (paginated) |
 | `GET` | `/api/downloads/{id}` | Get a single job |
 | `POST` | `/api/downloads/{id}/cancel` | Cancel a queued or running job |
+| `POST` | `/api/downloads/{id}/lyrics` | Attach pasted lyrics (LRC or plain) to a finished download |
+| `GET` | `/api/files/{id}/lyrics` | Download the `.lrc` sidecar of a completed job |
 | `POST` | `/api/downloads/reorder` | Reorder the pending queue (`{ "ordered_ids": [...] }`) |
 | `POST` | `/api/downloads/cancel` | Bulk-cancel jobs (`{ "ids": [...] }`) |
 | `DELETE` | `/api/downloads/{id}` | Remove from history (optionally delete the file) |

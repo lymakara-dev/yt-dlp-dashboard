@@ -123,6 +123,12 @@ export const api = {
   fileUrl: (id: number) => `/api/files/${id}`,
 
   lyricsFileUrl: (id: number) => `/api/files/${id}/lyrics`,
+
+  attachLyrics: (id: number, lyrics: string) =>
+    request<Job>(`/api/downloads/${id}/lyrics`, {
+      method: "POST",
+      body: JSON.stringify({ lyrics }),
+    }),
 };
 
 // Build the absolute WebSocket URL for a job's progress stream.

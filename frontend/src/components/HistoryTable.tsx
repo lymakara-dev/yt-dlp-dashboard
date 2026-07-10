@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, FileText, History, MoreHorizontal, RotateCw, Trash2 } from "lucide-react";
+import { Download, FileText, History, MoreHorizontal, Music, RotateCw, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -33,6 +35,8 @@ function formatLabel(job: Job): string {
 
 export function HistoryTable() {
   const qc = useQueryClient();
+  const [lyricsJob, setLyricsJob] = useState<Job | null>(null);
+  const [lyricsText, setLyricsText] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["downloads"],
     queryFn: () => api.listDownloads(1, 100),
@@ -70,9 +74,26 @@ export function HistoryTable() {
     onError: (e: ApiError) => toast.error("Delete failed", { description: e.message }),
   });
 
+  const saveLyrics = useMutation({
+    mutationFn: ({ id, lyrics }: { id: number; lyrics: string }) => api.attachLyrics(id, lyrics),
+    onSuccess: () => {
+      toast.success("Lyrics attached", { description: "Embedded in the file + .lrc saved." });
+      qc.invalidateQueries({ queryKey: ["downloads"] });
+      setLyricsJob(null);
+      setLyricsText("");
+    },
+    onError: (e: ApiError) => toast.error("Could not attach lyrics", { description: e.message }),
+  });
+
+  const openLyricsEditor = (job: Job) => {
+    setLyricsText(job.options?.lyrics_synced ?? job.options?.lyrics_plain ?? "");
+    setLyricsJob(job);
+  };
+
   const items = data?.items ?? [];
 
   return (
+    <>
     <Card className="overflow-hidden">
       <Table>
         <TableHeader>
@@ -154,6 +175,14 @@ export function HistoryTable() {
                           </a>
                         </DropdownMenuItem>
                       ) : null}
+                      {job.status === "completed" && job.filepath ? (
+                        <DropdownMenuItem onClick={() => openLyricsEditor(job)}>
+                          <Music className="h-4 w-4" />
+                          {job.options?.lyrics_synced || job.options?.lyrics_plain
+                            ? "Edit lyrics"
+                            : "Add lyrics"}
+                        </DropdownMenuItem>
+                      ) : null}
                       <DropdownMenuItem onClick={() => redownload.mutate(job)}>
                         <RotateCw className="h-4 w-4" /> Re-download
                       </DropdownMenuItem>
@@ -181,5 +210,44 @@ export function HistoryTable() {
         </TableBody>
       </Table>
     </Card>
+
+    {lyricsJob ? (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        onClick={() => setLyricsJob(null)}
+      >
+        <Card className="w-full max-w-lg p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="space-y-3">
+            <div>
+              <p className="font-medium">Lyrics for “{lyricsJob.title ?? lyricsJob.url}”</p>
+              <p className="text-xs text-muted-foreground">
+                Paste plain text, or LRC lines like <code>[00:12.34] words</code> for synced
+                lyrics. They are embedded into the file and saved as a .lrc next to it.
+              </p>
+            </div>
+            <Textarea
+              value={lyricsText}
+              onChange={(e) => setLyricsText(e.target.value)}
+              rows={12}
+              placeholder={"[00:05.00] First line…\n[00:09.50] Second line…"}
+              className="font-mono text-xs"
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setLyricsJob(null)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => saveLyrics.mutate({ id: lyricsJob.id, lyrics: lyricsText })}
+                disabled={saveLyrics.isPending || !lyricsText.trim()}
+              >
+                {saveLyrics.isPending ? "Saving…" : "Save lyrics"}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    ) : null}
+    </>
   );
 }

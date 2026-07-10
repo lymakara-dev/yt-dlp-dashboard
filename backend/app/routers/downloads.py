@@ -14,6 +14,7 @@ from ..models import TERMINAL_STATES, Job, JobStatus, utcnow
 from ..options import redact
 from ..queue import manager
 from ..schemas import (
+    AttachLyricsRequest,
     BatchRequest,
     BulkCancelRequest,
     BulkCancelResult,
@@ -25,6 +26,7 @@ from ..schemas import (
     JobRead,
     ReorderRequest,
 )
+from ..tagging import attach_lyrics, parse_lrc
 
 router = APIRouter(prefix="/api/downloads", tags=["downloads"])
 
@@ -230,6 +232,42 @@ def cancel_download(job_id: int, session: Session = Depends(get_session)) -> Job
     if job.status in TERMINAL_STATES:
         raise HTTPException(status_code=409, detail=f"Job already {job.status.value}.")
     manager.cancel(job_id)
+    session.refresh(job)
+    return _job_read(job)
+
+
+@router.post("/{job_id}/lyrics", response_model=JobRead)
+def attach_job_lyrics(
+    job_id: int,
+    body: AttachLyricsRequest,
+    session: Session = Depends(get_session),
+) -> JobRead:
+    """Attach user-provided lyrics (LRC or plain text) to a finished download."""
+    text = body.lyrics.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="Lyrics text is required.")
+    job = session.get(Job, job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+    if job.status != JobStatus.completed or not job.filepath:
+        raise HTTPException(status_code=409, detail="File is not ready.")
+    if not os.path.exists(job.filepath):
+        raise HTTPException(status_code=404, detail="File no longer exists on disk.")
+
+    # Timestamped lines mean LRC; derive the plain text from them so USLT stays clean.
+    timed = parse_lrc(text)
+    synced = text if timed else None
+    plain = "\n".join(t for _, t in timed) if timed else text
+
+    attach_lyrics(job.filepath, synced, plain)
+
+    options = dict(job.options or {})
+    options["lyrics_synced"] = synced
+    options["lyrics_plain"] = plain
+    job.options = options
+    job.updated_at = utcnow()
+    session.add(job)
+    session.commit()
     session.refresh(job)
     return _job_read(job)
 

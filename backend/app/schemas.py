@@ -146,6 +146,10 @@ class DeleteJobRequest(BaseModel):
     delete_file: bool = False
 
 
+class AttachLyricsRequest(BaseModel):
+    lyrics: str  # LRC-format (timestamped) or plain text; format is auto-detected
+
+
 class ReorderRequest(BaseModel):
     ordered_ids: list[int]
 
