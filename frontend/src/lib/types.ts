@@ -104,6 +104,7 @@ export interface DownloadOptions {
   // Lyrics
   lyrics_synced?: string | null;
   lyrics_plain?: string | null;
+  auto_lyrics?: boolean;
 
   // Playlist
   playlist?: boolean;

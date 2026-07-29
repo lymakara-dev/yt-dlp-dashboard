@@ -22,13 +22,20 @@ from .downloader import (
     DownloadFailed,
     run_download,
 )
+from .lyrics import LyricsError, search_lyrics
 from .models import TERMINAL_STATES, Job, JobStatus, utcnow
 from .options import merge_legacy
+from .tagging import attach_lyrics
 
 log = logging.getLogger("ytdlp-dashboard.queue")
 
 # Minimum seconds between persisted progress writes per job (DB throttle).
 _DB_THROTTLE_S = 0.5
+
+# Reject an auto-lyrics match whose duration is off by more than this many
+# seconds from the downloaded track — there's no user confirming the match,
+# so a loose title/artist search needs a sanity check against a wrong song.
+_AUTO_LYRICS_MAX_DURATION_DRIFT_S = 10.0
 
 
 class JobManager:
@@ -38,6 +45,7 @@ class JobManager:
         self._cancel_events: dict[int, threading.Event] = {}
         self._cancel_requested: set[int] = set()
         self._last_db_write: dict[int, float] = {}
+        self._lyrics_tasks: set[asyncio.Task] = set()
         self._started = False
         self._target_workers = 1
         self._loop: asyncio.AbstractEventLoop | None = None
@@ -85,6 +93,9 @@ class JobManager:
         for t in self._workers:
             t.cancel()
         self._workers.clear()
+        for t in list(self._lyrics_tasks):
+            t.cancel()
+        self._lyrics_tasks.clear()
         self._started = False
 
     def _scale_workers(self, n: int) -> None:
@@ -227,10 +238,60 @@ class JobManager:
             self._finalize(job_id, JobStatus.error, error_message=str(exc))
         else:
             self._finalize(job_id, JobStatus.completed, result=result)
+            if options.auto_lyrics:
+                task = asyncio.create_task(self._maybe_attach_lyrics(job_id))
+                self._lyrics_tasks.add(task)
+                task.add_done_callback(self._lyrics_tasks.discard)
         finally:
             self._cancel_events.pop(job_id, None)
             self._cancel_requested.discard(job_id)
             self._last_db_write.pop(job_id, None)
+
+    # ---------- best-effort auto-lyrics (fire-and-forget after completion) ----------
+    async def _maybe_attach_lyrics(self, job_id: int) -> None:
+        """Look the finished track up on LRCLIB and attach lyrics if it's a solid match.
+
+        No user confirms this match (unlike the Lyrics page), so it only trusts a
+        result whose duration is close to the downloaded track's; anything else,
+        or any lookup/tag-write failure, is silently skipped.
+        """
+        with session_scope() as session:
+            job = session.get(Job, job_id)
+            if job is None or job.status != JobStatus.completed or not job.filepath or not job.title:
+                return
+            track, artist, duration, filepath = job.title, job.uploader, job.duration, job.filepath
+
+        try:
+            candidates = await asyncio.to_thread(
+                search_lyrics, track, artist or "", duration, limit=1
+            )
+        except LyricsError:
+            return
+        if not candidates:
+            return
+
+        best = candidates[0]
+        if not (best.synced_lyrics or best.plain_lyrics):
+            return
+        if duration and best.duration and abs(best.duration - duration) > _AUTO_LYRICS_MAX_DURATION_DRIFT_S:
+            log.info("Skipping auto-lyrics for job %s: duration mismatch", job_id)
+            return
+
+        try:
+            await asyncio.to_thread(attach_lyrics, filepath, best.synced_lyrics, best.plain_lyrics)
+        except Exception:
+            log.exception("Auto-lyrics attach failed for job %s", job_id)
+            return
+
+        with session_scope() as session:
+            job = session.get(Job, job_id)
+            if job is None:
+                return
+            options = dict(job.options or {})
+            options["lyrics_synced"] = best.synced_lyrics
+            options["lyrics_plain"] = best.plain_lyrics
+            job.options = options
+            job.updated_at = utcnow()
 
     # ---------- progress callback (runs in worker thread) ----------
     def _make_on_event(self, job_id: int):

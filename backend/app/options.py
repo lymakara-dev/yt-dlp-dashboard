@@ -84,6 +84,7 @@ class DownloadOptions(BaseModel):
     # ---- lyrics (title+artist lyrics feature) ----
     lyrics_synced: str | None = None  # LRC-format synced lyrics to attach
     lyrics_plain: str | None = None  # plain lyrics fallback to attach
+    auto_lyrics: bool = False  # best-effort LRCLIB lookup + attach once the download completes
 
     # ---- metadata ----
     write_info_json: bool = False  # write the full .info.json sidecar
