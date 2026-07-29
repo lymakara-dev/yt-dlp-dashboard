@@ -124,6 +124,9 @@
 - Configure download directory, default format, max concurrency, and the yt-dlp output template from the UI.
 - ffmpeg is detected at startup; the UI shows a clear warning if it's missing.
 
+**Telegram Bot**
+- Control the dashboard from a Telegram chat: send a link, pick **Video (best)** or **Audio only**, and the bot queues the job through the same code path as the web UI. It edits its message with live progress and sends the finished file back (or points you at the dashboard past Telegram's 50MB bot upload limit). Also supports `/queue`, `/status <id>`, `/cancel <id>`. Locked down to an allowlist of chat IDs, configured from **Settings → Telegram Bot**; requires `YTDLP_TELEGRAM_BOT_TOKEN` on the backend (see [Configuration](#configuration)).
+
 **Polish**
 - Responsive layout, dark mode (default) and light mode, built with [shadcn/ui](https://ui.shadcn.com)-style components.
 - **Quality-of-life:** paste from clipboard, drag-and-drop a URL onto the field, press `/` to focus the URL input, toast notifications, and a live speed graph — see **Real-time progress**.
@@ -230,6 +233,8 @@ Most settings are editable live from the **Settings** page (persisted in SQLite)
 | Output template | yt-dlp output template | `%(title)s [%(id)s].%(ext)s` |
 | Watch folder | Directory polled for `*.txt` URL lists to auto-queue (empty = disabled) | _empty_ |
 | Watch interval | Seconds between watch-folder scans | `30` |
+| Telegram bot enabled | Turn the bot's polling loop on/off (requires `YTDLP_TELEGRAM_BOT_TOKEN` to actually connect) | `false` |
+| Telegram allowed chat IDs | Comma-separated numeric chat IDs allowed to use the bot (empty = bot ignores everyone) | _empty_ |
 
 ### Environment variables (backend)
 
@@ -239,6 +244,7 @@ Most settings are editable live from the **Settings** page (persisted in SQLite)
 | `YTDLP_DATABASE_URL` | SQLite URL for the job/settings database | `sqlite:///backend/data/app.db` |
 | `YTDLP_STATIC_DIR` | Directory of a built frontend to serve at `/` (set automatically in Docker) | _empty_ (dev uses Vite) |
 | `YTDLP_CORS_ORIGINS` | Allowed CORS origins (JSON list) for the dev server | `["http://localhost:5173", "http://127.0.0.1:5173"]` |
+| `YTDLP_TELEGRAM_BOT_TOKEN` | Bot token from [@BotFather](https://t.me/BotFather); empty disables the Telegram bot entirely | _empty_ |
 
 The HTTP **port** is controlled by uvicorn (`--port 8000`) or the published Docker port (`8000:8000`). To change the dev backend target for the Vite proxy, set `VITE_BACKEND` before `pnpm dev`.
 
@@ -257,6 +263,14 @@ The HTTP **port** is controlled by uvicorn (`--port 8000`) or the published Dock
 4. **Manage your library.** Completed downloads land in **History**, where you can download the file, re-download with the same options, or delete it.
 
    ![Settings](docs/assets/screenshot-settings.png)
+
+### Telegram Bot
+
+1. Create a bot with [@BotFather](https://t.me/BotFather) and copy its token.
+2. Set `YTDLP_TELEGRAM_BOT_TOKEN` (see [Configuration](#configuration)) and (re)start the backend.
+3. Message the bot anything — it's locked down by default, so it replies with your numeric chat ID.
+4. In **Settings → Telegram Bot**, paste that chat ID into **Allowed chat IDs** and switch **Enabled** on.
+5. Send it a link. Pick **🎬 Video (best)** or **🎵 Audio only**; it queues the job, edits its message with live progress, and sends the finished file back when done.
 
 ## API Reference
 
@@ -281,6 +295,7 @@ All endpoints are under `/api`; interactive OpenAPI docs are at `/docs`.
 | `DELETE` | `/api/downloads/{id}` | Remove from history (optionally delete the file) |
 | `GET` | `/api/settings` · `PUT` | Read / update settings |
 | `GET` | `/api/files/{id}` | Download the finished file |
+| `GET` | `/api/telegram/status` | Telegram bot connection status (token/enabled/connected/username) |
 | `GET` | `/api/health` | Health + ffmpeg detection |
 | `WS` | `/ws/downloads/{id}` | Live progress stream for one job |
 

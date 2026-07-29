@@ -20,6 +20,8 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     ("job", "queue_position", "INTEGER NOT NULL DEFAULT 0"),
     ("appsettings", "watch_folder", "TEXT NOT NULL DEFAULT ''"),
     ("appsettings", "watch_interval", "INTEGER NOT NULL DEFAULT 30"),
+    ("appsettings", "telegram_enabled", "BOOLEAN NOT NULL DEFAULT 0"),
+    ("appsettings", "telegram_allowed_chat_ids", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 

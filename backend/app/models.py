@@ -25,6 +25,14 @@ class JobStatus(str, enum.Enum):
 # Terminal states no longer occupy a worker / cannot be cancelled.
 TERMINAL_STATES = {JobStatus.completed, JobStatus.error, JobStatus.cancelled}
 
+# Non-terminal states shown on the Queue page / bot's /queue, in worker-claim order.
+ACTIVE_STATES = [
+    JobStatus.scheduled,
+    JobStatus.queued,
+    JobStatus.downloading,
+    JobStatus.post_processing,
+]
+
 
 class Job(SQLModel, table=True):
     """A single download request and its lifecycle state."""
@@ -87,3 +95,8 @@ class AppSettings(SQLModel, table=True):
     # Automation: watch a folder for *.txt URL lists and auto-queue them.
     watch_folder: str = ""  # empty = disabled
     watch_interval: int = 30  # seconds between scans
+
+    # Telegram bot: enabled toggle + allowlist of chat ids (comma-separated).
+    # The bot token itself is bootstrap-only (see config.py) and never stored here.
+    telegram_enabled: bool = False
+    telegram_allowed_chat_ids: str = ""  # e.g. "12345678,98765432"; empty = deny all

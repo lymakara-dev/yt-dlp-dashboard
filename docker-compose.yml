@@ -15,4 +15,8 @@ services:
     environment:
       YTDLP_DOWNLOAD_DIR: /downloads
       YTDLP_DATABASE_URL: sqlite:////data/app.db
+      # Set to a @BotFather token to enable the Telegram bot (then enable it
+      # and allow your chat ID from Settings → Telegram Bot in the UI).
+      # Value comes from the (gitignored) .env file next to this compose file.
+      YTDLP_TELEGRAM_BOT_TOKEN: ${YTDLP_TELEGRAM_BOT_TOKEN:-}
     restart: unless-stopped

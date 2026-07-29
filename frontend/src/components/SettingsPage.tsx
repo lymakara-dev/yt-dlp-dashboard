@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { ApiError, api } from "@/lib/api";
 import type { Settings } from "@/lib/types";
 
@@ -31,6 +33,10 @@ export function SettingsPage() {
     queryFn: () => api.getSettings(),
   });
   const { data: health } = useQuery({ queryKey: ["health"], queryFn: () => api.health() });
+  const { data: telegramStatus } = useQuery({
+    queryKey: ["telegram-status"],
+    queryFn: () => api.getTelegramStatus(),
+  });
 
   const [form, setForm] = useState<Settings | null>(null);
   useEffect(() => {
@@ -166,6 +172,66 @@ export function SettingsPage() {
               />
             </Field>
           </div>
+
+          <div className="flex justify-end">
+            <Button onClick={() => save.mutate(form)} disabled={save.isPending}>
+              {save.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Save changes
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Telegram Bot</CardTitle>
+          <CardDescription>
+            Send links and track downloads from a Telegram chat.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {telegramStatus?.configured ? (
+            telegramStatus.connected ? (
+              <div className="flex items-center gap-2 text-sm text-emerald-500">
+                <CheckCircle2 className="h-4 w-4" />
+                Connected as @{telegramStatus.bot_username ?? "unknown"}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-amber-500">
+                <AlertTriangle className="h-4 w-4" />
+                Token configured, but the bot isn't polling yet.
+              </div>
+            )
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-amber-500">
+              <AlertTriangle className="h-4 w-4" />
+              Not configured — set YTDLP_TELEGRAM_BOT_TOKEN on the backend.
+            </div>
+          )}
+
+          <Field label="Enabled" hint="Turn the bot's polling loop on or off.">
+            <Switch
+              checked={form.telegram_enabled}
+              onCheckedChange={(v) => update("telegram_enabled", v)}
+            />
+          </Field>
+
+          <Field
+            label="Allowed chat IDs"
+            hint="Comma-separated numeric chat IDs. Empty = the bot ignores everyone. Message the bot once to see your chat ID in its reply."
+          >
+            <Textarea
+              value={form.telegram_allowed_chat_ids}
+              onChange={(e) => update("telegram_allowed_chat_ids", e.target.value)}
+              placeholder="12345678, 98765432"
+              className="font-mono text-sm"
+              rows={2}
+            />
+          </Field>
 
           <div className="flex justify-end">
             <Button onClick={() => save.mutate(form)} disabled={save.isPending}>

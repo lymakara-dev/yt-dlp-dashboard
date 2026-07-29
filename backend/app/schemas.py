@@ -183,6 +183,8 @@ class SettingsRead(BaseModel):
     naming: str
     watch_folder: str
     watch_interval: int
+    telegram_enabled: bool
+    telegram_allowed_chat_ids: str
 
     model_config = {"from_attributes": True}
 
@@ -195,6 +197,16 @@ class SettingsUpdate(BaseModel):
     naming: str | None = None
     watch_folder: str | None = None
     watch_interval: int | None = None
+    telegram_enabled: bool | None = None
+    telegram_allowed_chat_ids: str | None = None
+
+
+# ---------- Telegram ----------
+class TelegramStatusResponse(BaseModel):
+    configured: bool  # bot token is set via YTDLP_TELEGRAM_BOT_TOKEN
+    enabled: bool  # AppSettings.telegram_enabled
+    connected: bool  # polling loop is actually running
+    bot_username: str | None = None
 
 
 # ---------- Misc ----------
