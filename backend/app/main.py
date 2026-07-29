@@ -14,8 +14,9 @@ from .config import config
 from .db import init_db
 from .downloader import ffmpeg_info
 from .queue import manager
-from .routers import artist, downloads, files, lyrics, probe, search, settings, ws
+from .routers import artist, downloads, files, lyrics, probe, search, settings, telegram, ws
 from .schemas import HealthResponse
+from .telegram_bot import telegram_bot
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("ytdlp-dashboard")
@@ -38,9 +39,11 @@ async def lifespan(app: FastAPI):
 
     await manager.start()
     await watcher.start()
+    await telegram_bot.start()
 
     yield
 
+    await telegram_bot.stop()
     await watcher.stop()
     await manager.shutdown()
 
@@ -62,6 +65,7 @@ app.include_router(lyrics.router)
 app.include_router(downloads.router)
 app.include_router(settings.router)
 app.include_router(files.router)
+app.include_router(telegram.router)
 app.include_router(ws.router)
 
 

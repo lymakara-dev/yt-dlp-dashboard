@@ -34,6 +34,10 @@ class Config(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
+    # Telegram bot token (from @BotFather). Bootstrap-only, like static_dir: never
+    # stored in the DB or returned by any API response. Empty disables the bot.
+    telegram_bot_token: str = ""
+
 
 config = Config()
 

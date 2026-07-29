@@ -64,6 +64,24 @@ def update_settings(
             raise HTTPException(status_code=400, detail="watch_interval must be 5–3600 seconds.")
         settings.watch_interval = update.watch_interval
 
+    if update.telegram_enabled is not None:
+        settings.telegram_enabled = update.telegram_enabled
+
+    if update.telegram_allowed_chat_ids is not None:
+        cleaned: list[str] = []
+        for raw in update.telegram_allowed_chat_ids.split(","):
+            piece = raw.strip()
+            if not piece:
+                continue
+            try:
+                cleaned.append(str(int(piece)))
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid Telegram chat id: {piece!r}. Use a comma-separated list of numbers.",
+                ) from exc
+        settings.telegram_allowed_chat_ids = ",".join(cleaned)
+
     session.add(settings)
     session.commit()
     session.refresh(settings)

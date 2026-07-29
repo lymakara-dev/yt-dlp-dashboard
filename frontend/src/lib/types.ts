@@ -244,6 +244,15 @@ export interface Settings {
   naming: string;
   watch_folder: string;
   watch_interval: number;
+  telegram_enabled: boolean;
+  telegram_allowed_chat_ids: string;
+}
+
+export interface TelegramStatus {
+  configured: boolean;
+  enabled: boolean;
+  connected: boolean;
+  bot_username: string | null;
 }
 
 export interface HealthResponse {

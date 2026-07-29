@@ -1,16 +1,14 @@
 """Download job endpoints: create, list, detail, cancel, delete."""
 from __future__ import annotations
 
-import asyncio
 import os
-from datetime import timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, func, select
 
 from ..db import get_session, get_settings
-from ..downloader import ProbeError, probe
-from ..models import TERMINAL_STATES, Job, JobStatus, utcnow
+from ..jobs import build_job
+from ..models import ACTIVE_STATES, TERMINAL_STATES, Job, JobStatus, utcnow
 from ..options import redact
 from ..queue import manager
 from ..schemas import (
@@ -30,14 +28,6 @@ from ..tagging import attach_lyrics, parse_lrc
 
 router = APIRouter(prefix="/api/downloads", tags=["downloads"])
 
-# Non-terminal states shown on the Queue page, in worker-claim order.
-_ACTIVE_STATES = [
-    JobStatus.scheduled,
-    JobStatus.queued,
-    JobStatus.downloading,
-    JobStatus.post_processing,
-]
-
 
 def _job_read(job: Job) -> JobRead:
     """Validate a Job into its API shape with secret option values masked."""
@@ -52,42 +42,22 @@ async def create_download(req: DownloadRequest, session: Session = Depends(get_s
     if not url:
         raise HTTPException(status_code=422, detail="URL is required.")
 
-    settings = get_settings(session)
     # A future scheduled_at holds the job until the automation loop makes it due.
-    sched = req.scheduled_at
-    if sched is not None and sched.tzinfo is None:
-        sched = sched.replace(tzinfo=timezone.utc)  # treat naive input as UTC
-    is_scheduled = sched is not None and sched > utcnow()
-    job = Job(
-        url=url,
-        status=JobStatus.scheduled if is_scheduled else JobStatus.queued,
+    job = await build_job(
+        session,
+        url,
         format_id=req.format_id,
         quality_preset=req.quality_preset,
         audio_only=req.audio_only,
         subtitles=req.subtitles,
         embed_thumbnail=req.embed_thumbnail,
         sponsorblock=req.sponsorblock,
-        output_template=req.output_template or settings.default_output_template,
-        options=req.options.model_dump(exclude_none=True) if req.options else {},
-        scheduled_at=sched if is_scheduled else None,
+        output_template=req.output_template,
+        options=req.options,
+        scheduled_at=req.scheduled_at,
     )
 
-    # Best-effort metadata so the UI/history has a title immediately.
-    try:
-        info = await asyncio.to_thread(probe, url)
-        if not info.is_playlist:
-            job.title = info.title
-            job.uploader = info.uploader
-            job.duration = info.duration
-            job.thumbnail = info.thumbnail
-    except ProbeError:
-        pass  # metadata is optional; the download attempt will surface real errors
-
-    session.add(job)
-    session.commit()
-    session.refresh(job)
-
-    if not is_scheduled:
+    if job.status != JobStatus.scheduled:
         await manager.enqueue(job.id)
     return CreatedJob(id=job.id)
 
@@ -181,7 +151,7 @@ def list_active_downloads(session: Session = Depends(get_session)) -> JobList:
     paginated created_at-ordered list cannot guarantee (queued jobs run oldest-first)."""
     items = session.exec(
         select(Job)
-        .where(Job.status.in_(_ACTIVE_STATES))
+        .where(Job.status.in_(ACTIVE_STATES))
         .order_by(Job.queue_position, Job.created_at)
     ).all()
     return JobList(

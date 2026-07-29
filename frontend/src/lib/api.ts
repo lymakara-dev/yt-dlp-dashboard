@@ -8,6 +8,7 @@ import type {
   ProbeResponse,
   SearchResponse,
   Settings,
+  TelegramStatus,
 } from "./types";
 
 // Readable error thrown by the API client; carries the backend `detail` message.
@@ -126,6 +127,8 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(patch),
     }),
+
+  getTelegramStatus: () => request<TelegramStatus>("/api/telegram/status"),
 
   fileUrl: (id: number) => `/api/files/${id}`,
 
