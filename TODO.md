@@ -62,9 +62,13 @@ tests where appropriate, and docs updated. One feature (group) per commit.
 ## Phase 15 — UX
 - [x] Better progress bars, speed graph, ETA, retry indicator, queue viz, dark mode, keyboard shortcuts, drag-and-drop, clipboard detection, toast notifications, responsive layout
 
+## Phase 16 — Artist downloads
+- [x] `expand_entries()` flattens a channel/Videos-tab/uploads-playlist URL into individual videos (`extract_flat`, no download)
+- [x] `POST /api/artist/expand` + frontend `ArtistPage.tsx`: review/select songs, toggle audio-only, queue via the existing batch endpoint (one job per song, not one aggregate playlist job)
+
 ## Wrap-up
 - [x] Full code review + remove dead code (removed unused `broker.clear`)
 - [x] README + Developer Onboarding fully updated
 
-All 15 phases + the options architecture foundation are complete: each feature
+All 16 phases + the options architecture foundation are complete: each feature
 works from both backend and frontend, with validation, tests, and docs.

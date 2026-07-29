@@ -115,11 +115,11 @@ Two details worth internalizing:
 | [options.py](../backend/app/options.py) | **`DownloadOptions`** — the canonical set of every yt-dlp knob the UI exposes; `merge_legacy()` and `redact()` (secret masking). Persisted as `Job.options` JSON |
 | [schemas.py](../backend/app/schemas.py) | Pydantic request/response models — the **source of truth** for the hand-written TS client |
 | [db.py](../backend/app/db.py) | Engine, session helpers, table creation + settings seed, and `_run_migrations()` (additive `ALTER TABLE ADD COLUMN` list — no migration framework) |
-| [downloader.py](../backend/app/downloader.py) | yt-dlp wrappers: `probe()`, `probe_raw()`, `search()`, `build_ydl_opts()` (translates `DownloadOptions`), `build_match_filters()`, `parse_bytes()`/`parse_download_sections()`, `run_download()` |
+| [downloader.py](../backend/app/downloader.py) | yt-dlp wrappers: `probe()`, `probe_raw()`, `search()`, `expand_entries()` (flatten a channel/playlist into individual videos), `build_ydl_opts()` (translates `DownloadOptions`), `build_match_filters()`, `parse_bytes()`/`parse_download_sections()`, `run_download()` |
 | [queue.py](../backend/app/queue.py) | `JobManager`: async queue, worker pool, concurrency scaling, cancel, DB throttling, finalize |
 | [automation.py](../backend/app/automation.py) | `Watcher` background loop: promotes due `scheduled` jobs and auto-queues URLs from a watch folder's `*.txt` files |
 | [broker.py](../backend/app/broker.py) | In-process per-job pub/sub with last-message caching and thread-safe publish |
-| [routers/](../backend/app/routers/) | `probe` (+`/raw`), `search`, `downloads` (+`/batch`), `settings`, `files`, `ws` HTTP/WS endpoints |
+| [routers/](../backend/app/routers/) | `probe` (+`/raw`), `search`, `artist` (`/expand`), `downloads` (+`/batch`), `settings`, `files`, `ws` HTTP/WS endpoints |
 
 ### API surface
 
@@ -128,6 +128,7 @@ Two details worth internalizing:
 | POST | `/api/probe` | Metadata + formats, no download |
 | POST | `/api/probe/raw` | Full sanitized yt-dlp info JSON (raw extraction) |
 | POST | `/api/search` | ytsearch / ytsearchdate / scsearch results |
+| POST | `/api/artist/expand` | Flatten a channel/playlist URL into its individual videos (`extract_flat`, no download) |
 | POST | `/api/downloads` | Create a job (returns `{id}`); optional `scheduled_at` + `options` |
 | POST | `/api/downloads/batch` | Queue many URLs at once (returns `{ids, count}`) |
 | GET | `/api/downloads` | Paginated history, optional `status` filter |
@@ -141,9 +142,10 @@ Two details worth internalizing:
 
 ## Frontend map
 
-Single-page app with four views switched by local state in
+Single-page app with views switched by local state in
 [App.tsx](../frontend/src/App.tsx): **home** (submit + batch import + active downloads),
-**search**, **history**, and **settings**.
+**queue**, **search**, **artist**, **lyrics**, **history**, and **settings** (see
+[Header.tsx](../frontend/src/components/Header.tsx) for the `View` union + nav).
 
 | Area | What's there |
 | --- | --- |
@@ -151,7 +153,8 @@ Single-page app with four views switched by local state in
 | [lib/types.ts](../frontend/src/lib/types.ts) | TS mirror of the backend schemas incl. `DownloadOptions` (keep in sync with [schemas.py](../backend/app/schemas.py) / [options.py](../backend/app/options.py)) |
 | [hooks/useJobSocket.ts](../frontend/src/hooks/useJobSocket.ts) | WebSocket subscription with auto-reconnect and terminal-state callback |
 | [components/OptionsPanel.tsx](../frontend/src/components/OptionsPanel.tsx) | The collapsible advanced-options editor — **one section per feature phase** (subtitles, thumbnails, metadata, audio, playlist, download control, network, cookies, auth, filtering, post-processing, developer, file organization). Add new knobs here |
-| `components/` | `SubmitView`, `SearchPage`, `BatchImport`, `MetadataCard`, `FormatPicker`, `OptionsPanel`, `ActiveDownloads`, `DownloadCard`, `SpeedGraph`, `HistoryTable`, `SettingsPage`, `Header`, `StatusBadge`, plus a `components/ui/` set of Radix-based primitives |
+| [components/ArtistPage.tsx](../frontend/src/components/ArtistPage.tsx) | Expand a channel/playlist URL (`/api/artist/expand`), select which videos to grab, then queue them via the existing `/api/downloads/batch` endpoint — one job per song |
+| `components/` | `SubmitView`, `SearchPage`, `ArtistPage`, `BatchImport`, `MetadataCard`, `FormatPicker`, `OptionsPanel`, `QueuePage`, `DownloadCard`, `SpeedGraph`, `HistoryTable`, `LyricsPage`, `SettingsPage`, `Header`, `StatusBadge`, plus a `components/ui/` set of Radix-based primitives |
 
 Server state is managed with **TanStack Query**; the API client throws `ApiError` carrying
 the backend's `detail` message so UI toasts can show human-readable errors.

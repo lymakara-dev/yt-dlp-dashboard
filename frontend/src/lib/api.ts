@@ -1,4 +1,5 @@
 import type {
+  ArtistExpandResponse,
   DownloadRequest,
   HealthResponse,
   Job,
@@ -64,6 +65,12 @@ export const api = {
     request<SearchResponse>("/api/search", {
       method: "POST",
       body: JSON.stringify({ query, provider, limit }),
+    }),
+
+  expandArtist: (url: string, limit?: number) =>
+    request<ArtistExpandResponse>("/api/artist/expand", {
+      method: "POST",
+      body: JSON.stringify({ url, limit: limit ?? null }),
     }),
 
   lyricsSearch: (track: string, artist: string, limit = 5) =>

@@ -130,6 +130,19 @@ def probe(url: str) -> ProbeResponse:
 SEARCH_PROVIDERS = {"ytsearch", "ytsearchdate", "scsearch"}
 
 
+def _flat_entry(e: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "url": e.get("url") or e.get("webpage_url") or e.get("id"),
+        "title": e.get("title"),
+        "uploader": e.get("uploader") or e.get("channel"),
+        "duration": e.get("duration"),
+        "thumbnail": (e.get("thumbnails") or [{}])[-1].get("url")
+        if e.get("thumbnails")
+        else e.get("thumbnail"),
+        "view_count": e.get("view_count"),
+    }
+
+
 def search(query: str, *, limit: int = 10, provider: str = "ytsearch") -> list[dict[str, Any]]:
     """Search a provider (ytsearch/ytsearchdate/scsearch) and return flat results."""
     if provider not in SEARCH_PROVIDERS:
@@ -149,23 +162,61 @@ def search(query: str, *, limit: int = 10, provider: str = "ytsearch") -> list[d
     except Exception as exc:
         raise ProbeError(f"Search failed: {exc}") from exc
 
-    results: list[dict[str, Any]] = []
-    for e in (info or {}).get("entries", []) or []:
+    return [_flat_entry(e) for e in (info or {}).get("entries", []) or [] if e]
+
+
+def expand_entries(url: str, *, limit: int | None = None) -> dict[str, Any]:
+    """Flatten a channel/playlist URL into its individual videos, without downloading.
+
+    Used for "download all songs by this artist": point it at a channel's
+    Videos tab or an uploads/playlist URL and get back every entry so they can
+    be queued as individual jobs (one per song, each with its own history
+    entry and progress). Channel landing pages sometimes nest entries one
+    level deep (per-tab sub-playlists like Videos/Shorts/Live); that level is
+    flattened too.
+    """
+    opts: dict[str, Any] = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "noplaylist": False,
+        "extract_flat": True,
+    }
+    if limit:
+        opts["playlistend"] = max(1, limit)
+    try:
+        with YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+    except (DownloadError, ExtractorError) as exc:
+        raise ProbeError(_clean_message(str(exc))) from exc
+    except Exception as exc:
+        raise ProbeError(f"Could not read this URL: {exc}") from exc
+
+    if info is None:
+        raise ProbeError("No information could be extracted from this URL.")
+
+    raw_entries = info.get("entries")
+    if raw_entries is None:
+        raise ProbeError("This URL is a single video, not a channel or playlist.")
+
+    entries: list[dict[str, Any]] = []
+    for e in raw_entries:
         if not e:
             continue
-        results.append(
-            {
-                "url": e.get("url") or e.get("webpage_url") or e.get("id"),
-                "title": e.get("title"),
-                "uploader": e.get("uploader") or e.get("channel"),
-                "duration": e.get("duration"),
-                "thumbnail": (e.get("thumbnails") or [{}])[-1].get("url")
-                if e.get("thumbnails")
-                else e.get("thumbnail"),
-                "view_count": e.get("view_count"),
-            }
-        )
-    return results
+        nested = e.get("entries")
+        if nested is not None:
+            entries.extend(_flat_entry(se) for se in nested if se)
+        else:
+            entries.append(_flat_entry(e))
+
+    if limit:
+        entries = entries[:limit]
+
+    return {
+        "title": info.get("title"),
+        "uploader": info.get("uploader") or info.get("channel"),
+        "entries": entries,
+    }
 
 
 def probe_raw(url: str) -> dict[str, Any]:

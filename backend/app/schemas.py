@@ -61,6 +61,18 @@ class SearchResponse(BaseModel):
     results: list[SearchResultItem] = []
 
 
+# ---------- Artist (channel/playlist expansion) ----------
+class ArtistExpandRequest(BaseModel):
+    url: str
+    limit: int | None = None  # cap the number of videos returned; None = all
+
+
+class ArtistExpandResponse(BaseModel):
+    title: str | None = None
+    uploader: str | None = None
+    entries: list[SearchResultItem] = []
+
+
 # ---------- Lyrics ----------
 class LyricsSearchRequest(BaseModel):
     track: str

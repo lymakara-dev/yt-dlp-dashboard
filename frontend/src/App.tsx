@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArtistPage } from "@/components/ArtistPage";
 import { BatchImport } from "@/components/BatchImport";
 import { Header, type View } from "@/components/Header";
 import { HistoryTable } from "@/components/HistoryTable";
@@ -31,6 +32,12 @@ export default function App() {
           <div className="space-y-4">
             <h1 className="text-xl font-semibold">Search</h1>
             <SearchPage />
+          </div>
+        )}
+        {view === "artist" && (
+          <div className="space-y-4">
+            <h1 className="text-xl font-semibold">Artist</h1>
+            <ArtistPage />
           </div>
         )}
         {view === "lyrics" && (

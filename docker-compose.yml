@@ -6,7 +6,7 @@ services:
     image: yt-dlp-dashboard:latest
     container_name: yt-dlp-dashboard
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       # Where your downloaded files land on the host.
       - ./downloads:/downloads

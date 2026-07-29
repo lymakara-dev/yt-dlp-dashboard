@@ -208,6 +208,12 @@ export interface SearchResponse {
   results: SearchResultItem[];
 }
 
+export interface ArtistExpandResponse {
+  title: string | null;
+  uploader: string | null;
+  entries: SearchResultItem[];
+}
+
 export interface LyricsCandidate {
   track: string | null;
   artist: string | null;

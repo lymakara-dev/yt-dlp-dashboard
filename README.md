@@ -72,6 +72,9 @@
 **Search**
 - A dedicated **Search** page queries YouTube (relevance or newest) or SoundCloud (`ytsearch`/`ytsearchdate`/`scsearch`), returns thumbnailed results, and queues any result with one click. Backed by `POST /api/search`.
 
+**Artist downloads**
+- A dedicated **Artist** page: paste a channel's "Videos" tab (or an uploads playlist) URL and it flattens the channel into every individual video — thumbnails, titles, durations — via `POST /api/artist/expand` (no download). Select which ones you want (all by default), toggle **Audio only**, and queue them in one click. Unlike a whole-playlist download, each song becomes its **own** job with its own history entry and progress tracking, so a single unavailable track doesn't block the rest.
+
 **Lyrics + Audio**
 - A dedicated **Lyrics** page: search a song by **title + artist**, and the dashboard fetches synced lyrics from [LRCLIB](https://lrclib.net) and audio candidates via yt-dlp search side by side. Backed by `POST /api/lyrics/search`.
 - You confirm which track to download; it grabs the mp3 through the normal queue and attaches the lyrics as an embedded ID3 tag (`USLT`/`SYLT`) **and** a `.lrc` sidecar file next to the audio. If no lyrics are found, you can still download the audio on its own.
@@ -264,6 +267,7 @@ All endpoints are under `/api`; interactive OpenAPI docs are at `/docs`.
 | `POST` | `/api/probe` | Extract metadata + formats without downloading |
 | `POST` | `/api/probe/raw` | Full sanitized yt-dlp info dict (raw JSON) |
 | `POST` | `/api/search` | Search YouTube / SoundCloud for queueable results |
+| `POST` | `/api/artist/expand` | Flatten a channel/playlist URL into its individual videos (no download) |
 | `POST` | `/api/lyrics/search` | Fetch LRCLIB lyrics + yt-dlp audio candidates for a `{ track, artist }` |
 | `POST` | `/api/downloads` | Enqueue a download; returns a job id |
 | `POST` | `/api/downloads/batch` | Enqueue many URLs at once (duplicates skipped) |
