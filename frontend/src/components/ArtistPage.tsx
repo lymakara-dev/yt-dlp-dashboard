@@ -42,7 +42,14 @@ export function ArtistPage() {
   });
 
   const batch = useMutation({
-    mutationFn: (urls: string[]) => api.createBatch(urls, { audio_only: audioOnly }),
+    mutationFn: (urls: string[]) =>
+      api.createBatch(urls, {
+        audio_only: audioOnly,
+        embed_metadata: true,
+        embed_thumbnail: true,
+        // Lyrics only make sense for the audio-only path.
+        auto_lyrics: audioOnly,
+      }),
     onSuccess: (res) => {
       toast.success(`Queued ${res.count} song${res.count === 1 ? "" : "s"}`);
       qc.invalidateQueries({ queryKey: ["downloads"] });

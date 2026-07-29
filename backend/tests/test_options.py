@@ -33,6 +33,11 @@ def test_default_preset_best():
     assert "postprocessors" not in opts
 
 
+def test_auto_lyrics_defaults_off():
+    assert DownloadOptions().auto_lyrics is False
+    assert DownloadOptions(auto_lyrics=True).auto_lyrics is True
+
+
 def test_quality_presets():
     assert _build(DownloadOptions(quality_preset="1080p"))["format"].startswith("bv*[height<=1080]")
     assert _build(DownloadOptions(quality_preset="720p"))["format"].startswith("bv*[height<=720]")
