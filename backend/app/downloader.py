@@ -383,7 +383,7 @@ def build_ydl_opts(
             {
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": codec,
-                "preferredquality": o.audio_quality or "192",
+                "preferredquality": o.audio_quality or "0",
             }
         )
 
